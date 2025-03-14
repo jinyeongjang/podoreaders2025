@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 
 // 기도 요청의 기본 구조를 정의하는 인터페이스
 export interface PrayerRequest {
+  password: string;
   id: number; // 기도 요청의 고유 식별자
   title: string; // 기도 제목
   content: string; // 기도 내용
@@ -10,9 +11,10 @@ export interface PrayerRequest {
   authorId: number; // 작성자 ID
   createdAt: string; // 생성 일시
   updatedAt: string; // 수정 일시
+  isAnswered: boolean; // 기도 응답 여부
 }
 
-// 기도 컨텍스트에서 사용할 메서드들의 타입 정의
+// 기도 컨텍스트에 사용할 메서드 타입 정의
 interface PrayerContextType {
   prayers: PrayerRequest[];
   setPrayers: (prayers: PrayerRequest[]) => void;
@@ -20,6 +22,7 @@ interface PrayerContextType {
   updatePrayer: (id: number, prayer: Partial<PrayerRequest>) => Promise<PrayerRequest | null>;
   deletePrayer: (id: number) => Promise<void>;
   getPrayer: (id: number) => Promise<PrayerRequest | null>;
+  togglePrayerAnswered: (id: number) => void;
 }
 
 // Context 생성
@@ -97,6 +100,32 @@ export function PrayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ID로 기도 요청 조회
+  const getPrayer = async (id: number): Promise<PrayerRequest | null> => {
+    try {
+      const { data } = await supabase.from('prayers').select('*').eq('id', id).single();
+      return data;
+    } catch (error) {
+      console.error('Error fetching prayer:', error);
+      return null;
+    }
+  };
+
+  // 기도 응답 상태 토글
+  const togglePrayerAnswered = (id: number) => {
+    setPrayers((prev) =>
+      prev.map((prayer) =>
+        prayer.id === id
+          ? {
+              ...prayer,
+              answeredAt: prayer.isAnswered ? undefined : new Date().toISOString(),
+              isAnswered: !prayer.isAnswered,
+            }
+          : prayer,
+      ),
+    );
+  };
+
   // Context에 제공할 값들
   const value = {
     prayers,
@@ -104,6 +133,8 @@ export function PrayerProvider({ children }: { children: ReactNode }) {
     addPrayer,
     updatePrayer,
     deletePrayer,
+    getPrayer,
+    togglePrayerAnswered,
   };
 
   // 초기 로드가 완료되지 않았으면 null 반환
