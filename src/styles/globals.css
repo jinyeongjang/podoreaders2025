@@ -2,20 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    color: #171717;
+    background: #ffffff;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95;
+  }
+
+  .btn-icon {
+    @apply h-[100px] w-[100px];
+  }
+
+  .card {
+    @apply rounded-2xl bg-white p-6 shadow-sm transition-all hover:shadow-md;
+  }
+}
+
+/* Swiper 스타일 커스터마이징 */
+.weekly-stats-swiper {
+  padding: 20px 0;
+  padding-bottom: 40px !important;
+}
+
+.weekly-stats-swiper .swiper-button-next,
+.weekly-stats-swiper .swiper-button-prev {
+  color: #4f46e5;
+  width: 30px;
+  height: 30px;
+}
+
+.weekly-stats-swiper .swiper-pagination-bullet {
+  background: #4f46e5;
+  background: #4f46e5;
+  opacity: 0.3;
+}
+
+.weekly-stats-swiper .swiper-button-next:after,
+.weekly-stats-swiper .swiper-button-prev:after {
+  font-size: 20px;
+}
+
+.weekly-stats-swiper .swiper-pagination {
+  bottom: 0;
+}
+
+.weekly-stats-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+}
+
+/* iOS 홈 인디케이터 영역의 safe-margin */
+.h-safe-bottom {
+  height: env(safe-area-inset-bottom, 0px);
+}
+
+/* 하단 내비게이션 활성화 애니메이션 */
+@keyframes navPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.nav-active {
+  animation: navPulse 0.3s ease-in-out;
 }
