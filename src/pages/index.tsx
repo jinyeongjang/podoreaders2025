@@ -1,114 +1,125 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { motion, AnimatePresence } from 'framer-motion';
+import { pretendard } from '../lib/fonts';
+import Header from '../components/Header';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// hooks
+import { useHomeData } from '../hooks/useHomeData';
+import { useHomeModals } from '../hooks/useHomeModals';
+import { useTemperatureStats } from '../hooks/useTemperatureStats';
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// components
+import QtCheck from './qt-check';
+import DevFeatures from '../components/DevFeatures';
+import HomePageBanner from '../components/home/HomePageBanner';
+import NoticeSection from '../components/home/NoticeSection';
+import StatisticsSection from '../components/home/StatisticsSection';
+import TemperatureSection from '../components/home/TemperatureSection';
+
+// modals
+import DevFeatureModal from '../components/DevFeatureModal';
+import ExportFeatureModal from '../components/ExportFeatureModal';
+import FamilyAccessModal from '../components/FamilyAccessModal';
+import PrayerModal from '../components/prayer/PrayerModal';
+import PrayerNoteModal from '../components/PrayerNoteModal';
+
+export const animations = {
+  container: {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  },
+  item: {
+    hidden: { opacity: 0, y: 50 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        duration: 0.8,
+      },
+    },
+  },
+};
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // hooks
+  const { totals } = useHomeData();
+  const {
+    isPrayerModalOpen,
+    setPrayerModalOpen,
+    isNoteModalOpen,
+    setNoteModalOpen,
+    showDevFeatures,
+    showDevFeatureModal,
+    setShowDevFeatureModal,
+    showExportFeatureModal,
+    setShowExportFeatureModal,
+    isFamilyAccessModalOpen,
+    setFamilyAccessModalOpen,
+    handleDevFeatureConfirm,
+    handleExportToXLSX,
+    handleFamilyAccessConfirm,
+  } = useHomeModals();
+  const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  return (
+    <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
+      <Header />
+      <HomePageBanner />
+
+      <main className="container mx-auto max-w-6xl px-4 py-2">
+        <NoticeSection />
+
+        <StatisticsSection totals={totals} />
+
+        <TemperatureSection
+          userTemps={userTemps}
+          showTemperatures={showTemperatures}
+          setShowTemperatures={setShowTemperatures}
+        />
+
+        {/* 알림판 섹션 추가 */}
+        <motion.div
+          variants={animations.container}
+          initial="hidden"
+          animate="show"
+          className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-white"></h2>
+          </div>
+          <p className="text-md text-white"></p>
+        </motion.div>
+
+        <QtCheck />
+
+        {/* 개발 기능이 켜져있을 때만 보이는 영역 */}
+        {showDevFeatures && (
+          <DevFeatures
+            setPrayerModalOpen={setPrayerModalOpen}
+            setNoteModalOpen={setNoteModalOpen}
+            handleExportToXLSX={handleExportToXLSX}
+            animations={animations}
+          />
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* 모달 컴포넌트들 */}
+      <AnimatePresence>
+        {showDevFeatureModal && (
+          <DevFeatureModal onConfirm={handleDevFeatureConfirm} onCancel={() => setShowDevFeatureModal(false)} />
+        )}
+        {showExportFeatureModal && <ExportFeatureModal onClose={() => setShowExportFeatureModal(false)} />}
+        {isFamilyAccessModalOpen && (
+          <FamilyAccessModal onClose={() => setFamilyAccessModalOpen(false)} onConfirm={handleFamilyAccessConfirm} />
+        )}
+      </AnimatePresence>
+      <PrayerModal isOpen={isPrayerModalOpen} onClose={() => setPrayerModalOpen(false)} />
+      <PrayerNoteModal isOpen={isNoteModalOpen} onClose={() => setNoteModalOpen(false)} prayerId={0} />
     </div>
   );
 }
