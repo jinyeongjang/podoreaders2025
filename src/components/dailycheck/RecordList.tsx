@@ -11,7 +11,7 @@ interface RecordListProps {
   selectedDate?: string;
 }
 
-const RecordList: React.FC<RecordListProps> = ({ records, handleDeleteRecord, selectedDate }) => {
+const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecord, selectedDate }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<{
     date: string;
     userName: string;
