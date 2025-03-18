@@ -3,9 +3,12 @@ import { pretendard } from '../lib/fonts';
 import { useRouter } from 'next/router';
 import { FaArrowLeft, FaUser, FaUserCog, FaTrash, FaSpinner, FaUserShield, FaSignOutAlt } from 'react-icons/fa';
 import { RiChat3Fill } from 'react-icons/ri';
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '../utils/supabase';
+import { User } from '@supabase/supabase-js';
 import FamilyAccessModal from './FamilyAccessModal';
-import { useAuth } from '../hooks/useAuth';
-import { useHeaderChat } from '../hooks/useHeaderChat';
+import { GeminiChat } from '../lib/gemini';
+import { toast } from 'react-hot-toast';
 
 interface HeaderProps {
   title?: string;
@@ -13,22 +16,172 @@ interface HeaderProps {
   rightContent?: React.ReactNode;
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function Header({ title = '포도리더스 2025', showBackButton = false, rightContent }: HeaderProps) {
   const router = useRouter();
-  const { user, handleSignOut } = useAuth();
-  const {
-    isFamilyAccessModalOpen,
-    setFamilyAccessModalOpen,
-    handleFamilyAccessConfirm,
-    isChatVisible,
-    handleChatToggle,
-    handleClearMessages,
-    handleSubmit,
-    messages,
-    input,
-    setInput,
-    isLoading,
-  } = useHeaderChat();
+  const [user, setUser] = useState<User | null>(null);
+  const [isFamilyAccessModalOpen, setFamilyAccessModalOpen] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const savedMessages = localStorage.getItem('chatMessages');
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const chatInstance = useRef<GeminiChat | null>(null);
+
+  // 인증 상태 확인 함수
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        // 로컬 스토리지에서 사용자 정보 확인
+        const storedEmail = localStorage.getItem('userEmail');
+        if (storedEmail) {
+          setUser({ email: storedEmail } as User);
+        }
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          console.log('User confirmed from session:', session.user.email);
+          setUser(session.user);
+          localStorage.setItem('userEmail', session.user.email || '');
+        } else if (!storedEmail) {
+          // 세션도 없고 로컬 스토리지에도 없는 경우만 null
+
+          setUser(null);
+          localStorage.removeItem('userEmail');
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+
+    // 페이지 로드 시 즉시 확인
+    checkAuthStatus();
+
+    // 인증 상태 변경 이벤트 리스너
+    const handleAuthChange = () => {
+      console.log('auth-state-changed event triggered');
+      checkAuthStatus();
+    };
+
+    window.addEventListener('auth-state-changed', handleAuthChange);
+
+    // Supabase 인증 이벤트 구독
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Supabase auth event:', event, session?.user?.email);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('SIGNED_IN event detected:', session.user.email);
+        setUser(session.user);
+        localStorage.setItem('userEmail', session.user.email || '');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('SIGNED_OUT event detected');
+        setUser(null);
+        localStorage.removeItem('userEmail');
+      }
+    });
+
+    return () => {
+      window.removeEventListener('auth-state-changed', handleAuthChange);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // 로그아웃 함수 개선
+  const handleSignOut = async () => {
+    try {
+      // 즉시 UI 업데이트
+      setUser(null);
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+
+      // Supabase 로그아웃 요청
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        return;
+      }
+
+      if (toast) toast.success('로그아웃되었습니다');
+    } catch (error) {
+      console.error('로그아웃에 문제가 있어요:', error);
+    }
+  };
+
+  const handleFamilyAccessConfirm = (password: string) => {
+    if (password === '2025') {
+      setFamilyAccessModalOpen(false);
+      router.push('/familyManagement');
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
+  };
+
+  const handleChatToggle = () => {
+    setIsChatVisible(!isChatVisible);
+    if (!isChatVisible && chatInstance.current === null) {
+      chatInstance.current = new GeminiChat();
+      const hasGreeted = localStorage.getItem('hasGreeted');
+      if (!hasGreeted) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: '안녕하세요! 포도리더스 AI입니다. 무엇을 도와드릴까요?' },
+        ]);
+        localStorage.setItem('hasGreeted', 'true');
+      }
+    }
+  };
+
+  const handleClearMessages = () => {
+    setMessages([{ role: 'assistant', content: '안녕하세요! 포도리더스 AI입니다. 무엇을 도와드릴까요?' }]);
+    localStorage.setItem(
+      'chatMessages',
+      JSON.stringify([{ role: 'assistant', content: '안녕하세요! 포도리더스 AI입니다. 무엇을 도와드릴까요?' }]),
+    );
+    localStorage.setItem('hasGreeted', 'true');
+    chatInstance.current = new GeminiChat();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = { role: 'user', content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      if (chatInstance.current) {
+        const response = await chatInstance.current.sendMessage(input);
+        const assistantMessage: ChatMessage = { role: 'assistant', content: response };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: '죄송합니다. 오류가 발생했어요.',
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {}, [user]);
 
   return (
     <>
@@ -85,10 +238,18 @@ export default function Header({ title = '포도리더스 2025', showBackButton 
 
               <button
                 onClick={() => router.push('/familyManagement')}
+                // onClick={() => setFamilyAccessModalOpen(true)}
                 className="flex items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200 xs:px-3"
                 title="가족원 관리 페이지">
                 <FaUserCog className="h-5 w-5" />
               </button>
+
+              {/* <button
+                onClick={() => router.push('/developer')}
+                className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200 xs:px-2"
+                title="개발자 소개 페이지">
+                <FaCode className="h-5 w-5" />
+              </button> */}
 
               <button
                 onClick={handleChatToggle}
@@ -101,7 +262,6 @@ export default function Header({ title = '포도리더스 2025', showBackButton 
           </div>
         </div>
       </header>
-
       {isChatVisible && (
         <div className="mt-8 rounded-xl bg-white p-4 shadow-xl xs:mt-4 xs:p-2">
           <div className="mb-2 flex justify-end">
