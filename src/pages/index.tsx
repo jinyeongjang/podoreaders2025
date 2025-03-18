@@ -2,25 +2,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { pretendard } from '../lib/fonts';
 import Header from '../components/Header';
 
+// 서버점검 컴포넌트
+import MaintenanceBanner from '../components/MaintenanceBanner';
+import MaintenanceScreen from '../components/MaintenanceScreen';
+
 // hooks
 import { useHomeData } from '../hooks/useHomeData';
 import { useHomeModals } from '../hooks/useHomeModals';
 import { useTemperatureStats } from '../hooks/useTemperatureStats';
+import { useMaintenanceStatus } from '../hooks/useMaintenanceStatus';
 
 // components
 import QtCheck from './qt-check';
-import DevFeatures from '../components/DevFeatures';
+// import DevFeatures from '../components/DevFeatures';
 import HomePageBanner from '../components/home/HomePageBanner';
 import NoticeSection from '../components/home/NoticeSection';
 import StatisticsSection from '../components/home/StatisticsSection';
 import TemperatureSection from '../components/home/TemperatureSection';
 
 // modals
-import DevFeatureModal from '../components/DevFeatureModal';
+// import DevFeatureModal from '../components/DevFeatureModal';
 import ExportFeatureModal from '../components/ExportFeatureModal';
 import FamilyAccessModal from '../components/FamilyAccessModal';
 import PrayerModal from '../components/prayer/PrayerModal';
-import PrayerNoteModal from '../components/PrayerNoteModal';
 
 export const animations = {
   container: {
@@ -52,27 +56,44 @@ export default function Home() {
   const {
     isPrayerModalOpen,
     setPrayerModalOpen,
-    isNoteModalOpen,
-    setNoteModalOpen,
-    showDevFeatures,
-    showDevFeatureModal,
-    setShowDevFeatureModal,
+    // showDevFeatures,
+    // showDevFeatureModal,
+    // setShowDevFeatureModal,
+    // handleDevFeatureConfirm,
     showExportFeatureModal,
     setShowExportFeatureModal,
     isFamilyAccessModalOpen,
     setFamilyAccessModalOpen,
-    handleDevFeatureConfirm,
-    handleExportToXLSX,
+
+    // handleExportToXLSX,
     handleFamilyAccessConfirm,
   } = useHomeModals();
   const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
 
+  // 서버 점검 상태 관리
+  const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
+
+  // 서버 점검 중이면 점검 화면 표시
+  if (isMaintenanceMode) {
+    return <MaintenanceScreen maintenanceStatus={maintenanceStatus} />;
+  }
+
   return (
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
       <Header />
+
       <HomePageBanner />
 
       <main className="container mx-auto max-w-6xl px-4 py-2">
+        {/* 점검 예정 알림 */}
+        {maintenanceStatus.starts_at && new Date(maintenanceStatus.starts_at) > new Date() && (
+          <MaintenanceBanner
+            message={`예정된 점검 안내: ${maintenanceStatus.message}`}
+            startsAt={new Date(maintenanceStatus.starts_at)}
+            endsAt={maintenanceStatus.ends_at ? new Date(maintenanceStatus.ends_at) : undefined}
+          />
+        )}
+
         <NoticeSection />
 
         <StatisticsSection totals={totals} />
@@ -83,7 +104,7 @@ export default function Home() {
           setShowTemperatures={setShowTemperatures}
         />
 
-        {/* 알림판 섹션 추가 */}
+        {/* 알림판 섹션 */}
         <motion.div
           variants={animations.container}
           initial="hidden"
@@ -98,28 +119,26 @@ export default function Home() {
         <QtCheck />
 
         {/* 개발 기능이 켜져있을 때만 보이는 영역 */}
-        {showDevFeatures && (
+        {/* {showDevFeatures && (
           <DevFeatures
             setPrayerModalOpen={setPrayerModalOpen}
-            setNoteModalOpen={setNoteModalOpen}
             handleExportToXLSX={handleExportToXLSX}
             animations={animations}
           />
-        )}
+        )} */}
       </main>
 
-      {/* 모달 컴포넌트들 */}
+      {/* modal 컴포넌트들 */}
       <AnimatePresence>
-        {showDevFeatureModal && (
+        {/* {showDevFeatureModal && (
           <DevFeatureModal onConfirm={handleDevFeatureConfirm} onCancel={() => setShowDevFeatureModal(false)} />
-        )}
+        )} */}
         {showExportFeatureModal && <ExportFeatureModal onClose={() => setShowExportFeatureModal(false)} />}
         {isFamilyAccessModalOpen && (
           <FamilyAccessModal onClose={() => setFamilyAccessModalOpen(false)} onConfirm={handleFamilyAccessConfirm} />
         )}
       </AnimatePresence>
       <PrayerModal isOpen={isPrayerModalOpen} onClose={() => setPrayerModalOpen(false)} />
-      <PrayerNoteModal isOpen={isNoteModalOpen} onClose={() => setNoteModalOpen(false)} prayerId={0} />
     </div>
   );
 }
