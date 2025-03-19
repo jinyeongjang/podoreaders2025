@@ -20,8 +20,9 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ date, userName,
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // 추후 삭제는 DB에서 비밀번호 설정 후 비교하는 방식으로 변경 예정
   const handleConfirm = () => {
-    if (password === '2025') {
+    if (password === '20251200') {
       onConfirm();
     } else {
       setError('비밀번호가 올바르지 않습니다.');
