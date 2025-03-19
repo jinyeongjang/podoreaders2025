@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Header from '../components/Header';
 import { pretendard } from '../lib/fonts';
 import FamilyAccessLoginForm from '../components/family-management/FamilyAccessLoginForm';
+import { supabase } from '../lib/supabase';
 
 export default function FamilyAccessPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function FamilyAccessPage() {
     localStorage.removeItem('familyAuthorized');
   }, [router.query]);
 
-  // 로그인 처리 함수
+  // 기존 비밀번호 확인 방식을 Supabase DB에서 비밀번호 확인으로 변경
   const handleAuthorize = async (password: string) => {
     setIsLoading(true);
     setLoginError('');
@@ -24,9 +25,24 @@ export default function FamilyAccessPage() {
     // 보안 강화를 위한 지연 효과
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // 추후 DB에서 비밀번호 확인 후 인증되도록 수정 예정
     try {
-      if (password === '2025') {
+      // Supabase에서 비밀번호 설정 가져오기
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'family_access_password')
+        .single();
+
+      if (error) {
+        throw new Error('비밀번호 확인 중 오류가 발생했습니다.');
+      }
+
+      if (!data) {
+        throw new Error('비밀번호 설정을 찾을 수 없습니다.');
+      }
+
+      // DB에서 가져온 비밀번호와 비교
+      if (password === data.value) {
         // 인증 성공
         localStorage.setItem('familyAuthorized', 'true');
         localStorage.setItem('familyLastLogin', new Date().toISOString());
@@ -48,7 +64,7 @@ export default function FamilyAccessPage() {
         }
       }
     } catch (err) {
-      setLoginError('인증 중 오류가 발생했습니다.');
+      setLoginError(err instanceof Error ? err.message : '인증 중 오류가 발생했습니다.');
       console.error('Auth error:', err);
     } finally {
       setIsLoading(false);
