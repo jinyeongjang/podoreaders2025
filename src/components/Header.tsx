@@ -14,6 +14,7 @@ interface HeaderProps {
   title?: string;
   showBackButton?: boolean;
   rightContent?: React.ReactNode;
+  onBackClick?: () => void;
 }
 
 interface ChatMessage {
@@ -21,7 +22,12 @@ interface ChatMessage {
   content: string;
 }
 
-export default function Header({ title = '포도리더스 2025', showBackButton = false, rightContent }: HeaderProps) {
+export default function Header({
+  title = '포도리더스 2025',
+  showBackButton = false,
+  rightContent,
+  onBackClick,
+}: HeaderProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isFamilyAccessModalOpen, setFamilyAccessModalOpen] = useState(false);
@@ -109,10 +115,11 @@ export default function Header({ title = '포도리더스 2025', showBackButton 
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        console.error('Sign out error:', error);
         return;
       }
 
-      if (toast) toast.success('로그아웃되었습니다');
+      if (toast) toast.success('로그아웃되었어요');
     } catch (error) {
       console.error('로그아웃에 문제가 있어요:', error);
     }
@@ -183,6 +190,15 @@ export default function Header({ title = '포도리더스 2025', showBackButton 
 
   useEffect(() => {}, [user]);
 
+  // 뒤로가기 처리
+  const handleBack = () => {
+    if (onBackClick) {
+      onBackClick();
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -198,7 +214,7 @@ export default function Header({ title = '포도리더스 2025', showBackButton 
             <div className="flex items-center gap-4">
               {showBackButton && (
                 <button
-                  onClick={() => router.back()}
+                  onClick={handleBack}
                   className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100"
                   aria-label="뒤로 가기">
                   <FaArrowLeft size={20} />
