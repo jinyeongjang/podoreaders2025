@@ -40,26 +40,13 @@ export default function CampusSelectPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedCampus = localStorage.getItem('selectedCampus');
-      const campusAuthorized = localStorage.getItem('campusAuthorized') === 'true';
-      const accessLevel = localStorage.getItem('accessLevel');
 
       if (savedCampus) {
         setSelectedCampus(savedCampus);
         setPreviouslySaved(true);
-
-        // 이미 인증된 사용자는 자동으로 해당 캠퍼스 페이지로 리디렉션
-        if (campusAuthorized) {
-          if (savedCampus === 'prayer') {
-            const targetPath = accessLevel === 'advanced' ? '/campusSelect/prayer02' : '/campusSelect/prayer01';
-            router.push(targetPath);
-          } else if (savedCampus === 'word') {
-            const targetPath = accessLevel === 'advanced' ? '/campusSelect/word02' : '/campusSelect/word01';
-            router.push(targetPath);
-          }
-        }
       }
     }
-  }, [router]);
+  }, []);
 
   // 캠퍼스 선택 처리
   const handleSelectCampus = (campusId: string) => {
