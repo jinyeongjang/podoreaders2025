@@ -21,7 +21,7 @@ const campusList = [
   {
     id: 'test',
     name: '테스트',
-    description: '정식버전으로 업데이트 되기전 개발기능을 먼저 볼 수 있는 캠퍼스에요.',
+    description: '정식버전 개발기능을 먼저 볼 수 있어요.',
   },
 ];
 
@@ -82,7 +82,7 @@ export default function CampusSelectPage() {
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 ${pretendard.className}`}>
       <Header showBackButton={true} onBackClick={showLoginForm ? handleBackToSelection : handleBackToHome} />
 
-      <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="container mx-auto max-w-2xl px-4 py-8 xs:py-0">
         {showLoginForm && selectedCampusInfo ? (
           // 로그인 폼 표시
           <CampusAccessLoginForm
