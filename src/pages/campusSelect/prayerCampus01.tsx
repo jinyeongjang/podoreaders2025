@@ -19,9 +19,9 @@ import { useTemperatureStats } from '../../hooks/useTemperatureStats';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus';
 
 // components
-import QtCheck from '../qt-check';
+import QtCheckPrayer01 from '../qtCheckprayer01';
 import HomePageBanner from '../../components/home/HomePageBanner';
-import NoticeSection from '../../components/home/NoticeSection';
+import Prayer01NoticeSection from '../../components/campus/prayer/prayer01NoticeSection';
 import StatisticsSection from '../../components/home/StatisticsSection';
 import TemperatureSection from '../../components/home/TemperatureSection';
 
@@ -56,6 +56,7 @@ export const animations = {
 
 export default function Prayer01Page() {
   const router = useRouter();
+
   // hooks
   const { totals } = useHomeData();
   const {
@@ -67,10 +68,7 @@ export default function Prayer01Page() {
     setFamilyAccessModalOpen,
     handleFamilyAccessConfirm,
   } = useHomeModals();
-
   const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
-
-  // 서버 점검 상태 관리
   const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
 
   // 캠퍼스 권한 확인
@@ -83,8 +81,15 @@ export default function Prayer01Page() {
       const checkAuth = () => {
         const campusAuthorized = localStorage.getItem('campusAuthorized') === 'true';
         const selectedCampus = localStorage.getItem('selectedCampus');
+        const lastPassword = localStorage.getItem('lastPassword');
+        const accessLevel = localStorage.getItem('accessLevel');
 
-        if (campusAuthorized && selectedCampus === 'prayer') {
+        // 기도 캠퍼스 권한 및 적절한 접근 레벨 확인
+        if (
+          campusAuthorized &&
+          selectedCampus === 'prayer' &&
+          (accessLevel === 'basic' || lastPassword === '1234' || lastPassword === '20250011')
+        ) {
           setIsAuthorized(true);
         } else {
           // 권한이 없으면 캠퍼스 선택 페이지로 리디렉션
@@ -123,9 +128,9 @@ export default function Prayer01Page() {
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
       <Header />
 
-      {/* 캠퍼스 선택 */}
-      <div className="container mx-auto px-4">
-        <CampusSelectButton selectedCampus="prayer" />
+      {/* 캠퍼스 선택 버튼 */}
+      <div className="container mx-auto max-w-2xl px-4 py-2">
+        <CampusSelectButton selectedCampus="prayer" clearAuthOnClick={true} />
       </div>
 
       <main className="container mx-auto max-w-6xl px-4 py-2">
@@ -138,27 +143,31 @@ export default function Prayer01Page() {
           />
         )}
 
-        {/* 말씀 캠퍼스 2팀 페이지 section */}
-        <motion.div
-          variants={animations.item}
-          className="container mx-auto mb-4 w-[640px] rounded-xl border border-indigo-200 bg-indigo-50 p-4 tracking-tight shadow-md transition-shadow duration-300 hover:shadow-lg xs:w-full">
-          <div className="flex items-center gap-2">
-            <IoAddCircle className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-md font-semibold text-indigo-800">말씀캠퍼스 가족</h3>
+        <div className="container mx-auto max-w-2xl px-4 py-2">
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 tracking-tight shadow-md transition-shadow duration-300 hover:shadow-lg">
+            <div className="flex items-center gap-2">
+              <IoAddCircle className="h-5 w-5 text-indigo-600" />
+              <h3 className="text-md font-semibold text-indigo-800">기도캠퍼스 가족</h3>
+            </div>
+            <p className="mt-1 pl-7 text-sm text-indigo-700">1팀 페이지 입니다.</p>
           </div>
-          <p className="mt-1 pl-7 text-sm text-indigo-700">2팀 페이지 입니다</p>
-        </motion.div>
+        </div>
 
         <HomePageBanner />
-        <NoticeSection />
+
+        {/* 캠퍼스 정보 배너 */}
+
+        <Prayer01NoticeSection />
+
         <StatisticsSection totals={totals} />
+
         <TemperatureSection
           userTemps={userTemps}
           showTemperatures={showTemperatures}
           setShowTemperatures={setShowTemperatures}
         />
 
-        {/* 알림판 섹션 */}
+        {/* QT 체크 구분선 */}
         <motion.div
           variants={animations.container}
           initial="hidden"
@@ -170,7 +179,8 @@ export default function Prayer01Page() {
           <p className="text-md text-white"></p>
         </motion.div>
 
-        <QtCheck />
+        {/* prayer01 team QT check section */}
+        <QtCheckPrayer01 />
       </main>
 
       {/* modal 컴포넌트들 */}

@@ -19,7 +19,7 @@ import { useTemperatureStats } from '../../hooks/useTemperatureStats';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus';
 
 // components
-import QtCheck from '../qt-check';
+import QtCheckWordCampus01 from '../qtCheckWordCampus01';
 import HomePageBanner from '../../components/home/HomePageBanner';
 import NoticeSection from '../../components/home/NoticeSection';
 import StatisticsSection from '../../components/home/StatisticsSection';
@@ -54,8 +54,9 @@ export const animations = {
   },
 };
 
-export default function Prayer01Page() {
+export default function Word01Page() {
   const router = useRouter();
+
   // hooks
   const { totals } = useHomeData();
   const {
@@ -67,7 +68,6 @@ export default function Prayer01Page() {
     setFamilyAccessModalOpen,
     handleFamilyAccessConfirm,
   } = useHomeModals();
-
   const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
 
   // 서버 점검 상태 관리
@@ -86,11 +86,12 @@ export default function Prayer01Page() {
         const lastPassword = localStorage.getItem('lastPassword');
         const accessLevel = localStorage.getItem('accessLevel');
 
-        // 기도 캠퍼스 권한 레벨 확인
+        // 말씀 캠퍼스 권한 확인
+        // 비밀번호 "20250011" 또는 일반 접근 권한으로 접근 가능
         if (
           campusAuthorized &&
-          selectedCampus === 'prayer' &&
-          (accessLevel === 'advanced' || lastPassword === '5678')
+          selectedCampus === 'word' &&
+          (lastPassword === '1234' || lastPassword === '20250011' || accessLevel === 'basic')
         ) {
           setIsAuthorized(true);
         } else {
@@ -130,9 +131,24 @@ export default function Prayer01Page() {
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
       <Header />
 
-      {/* 캠퍼스 선택 */}
-      <div className="container mx-auto px-4">
-        <CampusSelectButton selectedCampus="prayer" />
+      {/* 캠퍼스 선택 버튼 */}
+      <div className="container mx-auto max-w-2xl px-4 py-2">
+        <CampusSelectButton selectedCampus="word" clearAuthOnClick={true} />
+      </div>
+
+      {/* 캠퍼스 정보 배너 */}
+      <div className="container mx-auto max-w-2xl px-4 py-2">
+        <motion.div
+          variants={animations.item}
+          initial="hidden"
+          animate="show"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 tracking-tight shadow-md transition-shadow duration-300 hover:shadow-lg">
+          <div className="flex items-center gap-2">
+            <IoAddCircle className="h-5 w-5 text-emerald-600" />
+            <h3 className="text-md font-semibold text-emerald-800">말씀캠퍼스 가족</h3>
+          </div>
+          <p className="mt-1 pl-7 text-sm text-emerald-700">1팀 페이지 입니다.</p>
+        </motion.div>
       </div>
 
       <main className="container mx-auto max-w-6xl px-4 py-2">
@@ -145,39 +161,32 @@ export default function Prayer01Page() {
           />
         )}
 
-        {/* 기도 캠퍼스 2팀 페이지 section */}
-        <motion.div
-          variants={animations.item}
-          className="container mx-auto mb-4 w-[640px] rounded-xl border border-indigo-200 bg-indigo-50 p-4 tracking-tight shadow-md transition-shadow duration-300 hover:shadow-lg xs:w-full">
-          <div className="flex items-center gap-2">
-            <IoAddCircle className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-md font-semibold text-indigo-800">기도캠퍼스 가족</h3>
-          </div>
-          <p className="mt-1 pl-7 text-sm text-indigo-700">2팀 페이지 입니다</p>
-        </motion.div>
-
         <HomePageBanner />
+
         <NoticeSection />
+
         <StatisticsSection totals={totals} />
+
         <TemperatureSection
           userTemps={userTemps}
           showTemperatures={showTemperatures}
           setShowTemperatures={setShowTemperatures}
         />
 
-        {/* 알림판 섹션 */}
+        {/* QT 체크 구분선 */}
         <motion.div
           variants={animations.container}
           initial="hidden"
           animate="show"
-          className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
+          className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-emerald-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-white"></h2>
           </div>
           <p className="text-md text-white"></p>
         </motion.div>
 
-        <QtCheck />
+        {/* QT 체크 섹션 */}
+        <QtCheckWordCampus01 />
       </main>
 
       {/* modal 컴포넌트들 */}
