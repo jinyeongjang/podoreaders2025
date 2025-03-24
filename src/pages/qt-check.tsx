@@ -62,7 +62,6 @@ const QtCheck = () => {
   // 가족원 선택 처리
   const handleUserSelect = useCallback(
     async (name: string) => {
-      
       setUserName(name);
       // 선택한 가족원 이름을 로컬스토리지로 저장하여 편의성 개선
       localStorage.setItem('qtUserName', name);
@@ -70,6 +69,9 @@ const QtCheck = () => {
 
       // 기록 불러오기
       await loadRecordForDate(selectedDate);
+    },
+    [loadRecordForDate, selectedDate],
+  );
 
   // 사용자 초기화
   const handleResetUser = () => {
