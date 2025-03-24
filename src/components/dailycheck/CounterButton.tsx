@@ -1,33 +1,44 @@
+import React from 'react';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import NumberFlow from '@number-flow/react';
 import { motion } from 'framer-motion';
 import { useCallback, useState } from 'react';
 
-const CounterButton = ({
+interface CounterButtonProps {
+  count: number;
+  setCount: (value: number) => void;  // 단순화된 타입
+  label: string;
+  icon?: React.ReactNode;
+  min?: number;
+  max?: number;
+}
+
+const CounterButton: React.FC<CounterButtonProps> = ({
   count,
   setCount,
   label,
   icon,
-}: {
-  count: number;
-  setCount: (count: number | ((prev: number) => number)) => void;
-  label: string;
-  icon: React.ReactNode;
+  min = 0,
+  max = 999,
 }) => {
   const [showInput, setShowInput] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
   const handleIncrement = useCallback(() => {
-    setCount((prev: number) => prev + 1);
-  }, [setCount]);
+    if (count < max) {
+      setCount(count + 1);
+    }
+  }, [count, max, setCount]);
 
   const handleDecrement = useCallback(() => {
-    setCount((prev: number) => Math.max(0, prev - 1));
-  }, [setCount]);
+    if (count > min) {
+      setCount(count - 1);
+    }
+  }, [count, min, setCount]);
 
   const handleDirectInput = () => {
     const num = parseInt(inputValue);
-    if (!isNaN(num) && num >= 0) {
+    if (!isNaN(num) && num >= min && num <= max) {
       setCount(num);
       setShowInput(false);
       setInputValue('');
