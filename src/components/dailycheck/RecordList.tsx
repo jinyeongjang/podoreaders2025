@@ -41,7 +41,7 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
       setCurrentPage(totalPagesCount);
     }
 
-    // 현재 페이지에 맞는 기록들 추출
+    // 현재 페이지에 맞는 기록 추출
     const startIndex = (currentPage - 1) * recordsPerPage;
     const endIndex = Math.min(startIndex + recordsPerPage, records.length);
     setPaginatedRecords(records.slice(startIndex, endIndex));
@@ -49,7 +49,7 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // 페이지 변경 시 스크롤을 기록 목록 상단으로 부드럽게 이동
+    // 스크롤 부드럽게 상단으로 이동
     document.getElementById('records-container')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -60,8 +60,8 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
       record: {
         qtCount: record.qtCount,
         bibleReadCount: record.bibleReadCount,
-        qtDone: record.qtDone, // 기본값 설정
-        bibleReadDone: record.bibleReadDone, // 기본값 설정
+        qtDone: record.qtDone,
+        bibleReadDone: record.bibleReadDone,
         writingDone: record.writingDone,
       },
     });
@@ -127,6 +127,12 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
                     {record.writingDone && (
                       <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-600">
                         필사 완료
+                      </span>
+                    )}
+                    {/* 새벽기도 참석 정보 ui */}
+                    {record.dawnPrayerAttended && (
+                      <span className="flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-600">
+                        <span className="whitespace-nowrap">새벽기도 참석</span>
                       </span>
                     )}
                   </div>
