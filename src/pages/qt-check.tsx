@@ -1,56 +1,30 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaSpinner, FaBible, FaBook, FaCheck, FaChevronDown, FaUser, FaPen } from 'react-icons/fa';
-import usersData from '../data/users.json';
+import { useState, useCallback, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { pretendard } from '../lib/fonts';
-import CounterButton from '../components/dailycheck/CounterButton';
-import SuccessModal from '../components/dailycheck/SuccessModal';
-import RecordList from '../components/dailycheck/RecordList';
 import Calendar from '../components/dailycheck/Calendar';
+import RecordList from '../components/dailycheck/RecordList';
+import SuccessModal from '../components/dailycheck/SuccessModal';
 import ExportConfirmModal from '../components/dailycheck/ExportConfirmModal';
 import PrayerModal from '../components/prayer/PrayerModal';
-
-// custom hooks
+import QtCounterPanel from '../components/dailycheck/QtCounterPanel';
+import SubmitButtonPanel from '../components/dailycheck/SubmitButtonPanel';
+import DawnPrayerCheck from '../components/dailycheck/DawnPrayerCheck';
+import { exportToExcel } from '../utils/excel';
 import { useQtRecords } from '../hooks/useQtRecords';
-import { useQtForm } from '../hooks/useQtForm';
-import { useQtCalendar } from '../hooks/useQtCalendar';
-
-// 애니메이션 설정 추가
-const animations = {
-  container: {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-      },
-    },
-  },
-};
+import usersData from '../data/users.json';
+import { FaUser, FaChevronDown, FaSpinner } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const QtCheck = () => {
-  // 캘린더 관련 로직
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [isPrayerModalOpen, setPrayerModalOpen] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // QT 기록 관리 로직을 커스텀 훅으로 분리
   const {
     selectedDate,
     currentMonth,
-    isCalendarOpen,
-    handleDateSelect,
-    handlePrevMonth,
-    handleNextMonth,
-    toggleCalendar,
-  } = useQtCalendar();
-
-  // 데이터 관리 관련 로직
-  const {
-    records,
-    showExportModal,
-    setShowExportModal,
-    handleDeleteRecord,
-    handleExportConfirm,
-    updateRecords, // 레코드 업데이트 함수 추출
-  } = useQtRecords();
-
-  // 폼 관련 로직
-  const {
     qtCount,
     setQtCount,
     bibleReadCount,
@@ -61,38 +35,104 @@ const QtCheck = () => {
     setBibleReadDone,
     writingDone,
     setWritingDone,
+    dawnPrayerAttended,
+    setDawnPrayerAttended,
     isSaving,
-    userName,
+    records,
     showSuccessModal,
     setShowSuccessModal,
-    showUserDropdown,
-    setShowUserDropdown,
-    isPrayerModalOpen,
-    setPrayerModalOpen,
-    handleSubmit,
-    handleResetUser,
-    handleUserSelect,
-  } = useQtForm({
-    selectedDate,
-    updateRecords, // 함수 전달
-  });
+    isCalendarOpen,
+    loadRecordForDate,
+    saveRecord,
+    deleteRecord,
+    handleDateSelect,
+    handlePrevMonth,
+    handleNextMonth,
+    toggleCalendar,
+  } = useQtRecords(userName);
+
+  // 컴포넌트 마운트 시 localStorage에서 저장된 사용자 로드
+  useEffect(() => {
+    const savedUserName = localStorage.getItem('qtUserName');
+    if (savedUserName) {
+      setUserName(savedUserName);
+    }
+  }, []);
+
+  // 가족원 선택 처리
+  const handleUserSelect = useCallback(
+    async (name: string) => {
+      
+      setUserName(name);
+      // 선택한 가족원 이름을 로컬스토리지로 저장하여 편의성 개선
+      localStorage.setItem('qtUserName', name);
+      setShowUserDropdown(false);
+
+      // 기록 불러오기
+      await loadRecordForDate(selectedDate);
+
+  // 사용자 초기화
+  const handleResetUser = () => {
+    setUserName('');
+    localStorage.removeItem('qtUserName');
+    setShowUserDropdown(false);
+  };
+
+  // 폼 제출 처리
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userName.trim()) {
+      alert('가족원을 선택해주세요.');
+      return;
+    }
+
+    const success = await saveRecord();
+
+    if (!success) {
+      alert('기록 저장에 실패했습니다.');
+    }
+  };
+
+  // 기록 삭제 처리
+  const handleDeleteRecord = async (date: string, user: string) => {
+    const success = await deleteRecord(date, user);
+    if (!success) {
+      alert('기록 삭제에 실패했습니다.');
+    }
+  };
+
+  // 내보내기 확인
+  const handleExportConfirm = () => {
+    exportToExcel(records);
+    setShowExportModal(false);
+  };
+
+  // 날짜 선택 이벤트 핸들러
+  const handleDateChange = useCallback(
+    async (date: string) => {
+      console.log(`날짜 변경: ${date} - 기록 로드 시작`);
+      await handleDateSelect(date);
+      console.log(`날짜 변경: ${date} - 기록 로드 완료`, `새벽기도: ${dawnPrayerAttended ? '참석' : '미참석'}`);
+    },
+    [handleDateSelect, dawnPrayerAttended],
+  );
 
   return (
     <div className={`flex ${pretendard.className}`}>
       <main className="container mx-auto mb-10 w-full max-w-2xl px-4 py-0 xs:px-0 xs:py-0">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="rounded-b-lg bg-white p-6 shadow-lg">
+            {/* 가족원 선택 */}
             <div className="mb-6">
-              {/* 초기화 버튼 나타날 때 요소 움직이는 것을 고정하기 위해 h-[40px] 속성 설정 */}
               <div className="mb-4 flex h-[40px] items-center justify-between">
-                <label className="text-lg font-semibold text-gray-700">1. 캠퍼스 및 이름</label>
+                <label className="text-lg font-semibold text-gray-700">1. 가족원 선택</label>
                 {userName && (
                   <button
                     type="button"
                     onClick={handleResetUser}
                     className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-gray-500 transition-all hover:border-violet-500 hover:text-violet-500 hover:shadow-md active:scale-95 xs:w-[100px] xs:px-1">
                     <FaSpinner className="h-4 w-4" />
-                    초기화
+                    <span className="xs:text-sm">초기화</span>
                   </button>
                 )}
               </div>
@@ -125,7 +165,7 @@ const QtCheck = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                         className="absolute left-0 right-0 top-full z-10 mt-1 max-h-[480px] w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg xs:max-h-[450px]">
-                        {usersData.users.map((user: { id: number; name: string }) => (
+                        {usersData.users.map((user) => (
                           <button
                             key={user.id}
                             type="button"
@@ -142,13 +182,14 @@ const QtCheck = () => {
               </div>
             </div>
 
+            {/* 날짜 선택 컴포넌트 */}
             <label className="mb-4 block text-lg font-semibold text-gray-700">2. 날짜</label>
             <div className="mb-6">
               <Calendar
                 currentMonth={currentMonth}
                 selectedDate={selectedDate}
                 records={records}
-                handleDateSelect={handleDateSelect}
+                handleDateSelect={handleDateChange} // 수정된 핸들러 사용
                 handlePrevMonth={handlePrevMonth}
                 handleNextMonth={handleNextMonth}
                 isOpen={isCalendarOpen}
@@ -156,137 +197,39 @@ const QtCheck = () => {
               />
             </div>
 
-            <div className="flex-col-2 mb-6 flex gap-4 tracking-tighter">
-              <CounterButton
-                count={qtCount}
-                setCount={setQtCount}
-                label="큐티 횟수(일)"
-                icon={<FaBook className="h-5 w-5 text-indigo-500" />}
-              />
+            {/* QT 카운터 컴포넌트 */}
+            <QtCounterPanel
+              qtCount={qtCount}
+              setQtCount={setQtCount}
+              bibleReadCount={bibleReadCount}
+              setBibleReadCount={setBibleReadCount}
+              qtDone={qtDone}
+              setQtDone={setQtDone}
+              bibleReadDone={bibleReadDone}
+              setBibleReadDone={setBibleReadDone}
+              writingDone={writingDone}
+              setWritingDone={setWritingDone}
+            />
 
-              <CounterButton
-                count={bibleReadCount}
-                setCount={setBibleReadCount}
-                label="말씀 읽기 횟수(장)"
-                icon={<FaBible className="h-5 w-5 text-indigo-500" />}
-              />
-            </div>
-            <label className="mb-4 block text-lg font-semibold text-gray-700">3. 완료 여부</label>
-            <div className="space-y-4">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setQtDone(!qtDone)}
-                  className={`flex w-full items-center gap-3 rounded-xl ${
-                    qtDone ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'bg-gray-50 ring-1 ring-gray-200 hover:shadow-md'
-                  } px-4 py-3 transition-all hover:bg-indigo-50 active:bg-indigo-100`}>
-                  <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-md ${
-                      qtDone ? 'bg-indigo-500 text-white' : 'bg-white ring-1 ring-gray-300'
-                    }`}>
-                    {qtDone && <FaCheck size={14} />}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaBook className="h-5 w-5 text-indigo-500" />
-                    <span className="text-sm font-medium text-gray-700">큐티 완료</span>
-                  </div>
-                </button>
-              </div>
+            {/* 새벽기도 체크 컴포넌트 */}
+            <DawnPrayerCheck
+              dawnPrayerAttended={dawnPrayerAttended}
+              setDawnPrayerAttended={(value) => {
+                console.log('새벽기도 상태 변경:', value ? '참석' : '미참석');
+                setDawnPrayerAttended(value);
+              }}
+            />
 
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setBibleReadDone(!bibleReadDone)}
-                  className={`flex w-full items-center gap-3 rounded-xl ${
-                    bibleReadDone
-                      ? 'bg-indigo-50 ring-2 ring-indigo-500'
-                      : 'bg-gray-50 ring-1 ring-gray-200 active:bg-indigo-100'
-                  } px-4 py-3 transition-all hover:bg-indigo-50 hover:shadow-md`}>
-                  <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-md ${
-                      bibleReadDone ? 'bg-indigo-500 text-white' : 'bg-white ring-1 ring-gray-300'
-                    }`}>
-                    {bibleReadDone && <FaCheck size={14} />}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaBible className="h-5 w-5 text-indigo-500" />
-                    <span className="text-sm font-medium text-gray-700">말씀 읽기 완료</span>
-                  </div>
-                </button>
-              </div>
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setWritingDone(!writingDone)}
-                  className={`flex w-full items-center gap-3 rounded-xl ${
-                    writingDone
-                      ? 'bg-indigo-50 ring-2 ring-indigo-500'
-                      : 'bg-gray-50 ring-1 ring-gray-200 active:bg-indigo-100'
-                  } px-4 py-3 transition-all hover:bg-indigo-50 hover:shadow-md`}>
-                  <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-md ${
-                      writingDone ? 'bg-indigo-500 text-white' : 'bg-white ring-1 ring-gray-300'
-                    }`}>
-                    {writingDone && <FaCheck size={14} />}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaPen className="h-5 w-5 text-indigo-500" />
-                    <span className="text-sm font-medium text-gray-700">필사 완료</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col justify-end gap-2 tracking-tighter xs:flex-col">
-              <motion.div
-                variants={animations.container}
-                initial="hidden"
-                animate="show"
-                className="container mx-auto h-[70px] w-full max-w-6xl rounded-xl p-0 tracking-tighter shadow-lg"
-                style={{
-                  background: 'linear-gradient(-45deg, #4F46E5, #3B82F6, #60A5FA, #6376f1)',
-                  backgroundSize: '400% 400%',
-                  animation: 'gradient 5s ease infinite',
-                }}>
-                <style jsx global>{`
-                  @keyframes gradient {
-                    0% {
-                      background-position: 0% 50%;
-                    }
-                    50% {
-                      background-position: 100% 50%;
-                    }
-                    100% {
-                      background-position: 0% 50%;
-                    }
-                  }
-                `}</style>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex h-full w-full items-center justify-center gap-2 px-4 text-white transition-all hover:shadow-md disabled:bg-opacity-50">
-                  {isSaving ? <FaSpinner className="h-5 w-5 animate-spin" /> : <FaCheck className="h-5 w-5" />}
-                  <span>{isSaving ? '저장 중...' : '큐티, 말씀 읽기 횟수 기록하기'}</span>
-                </button>
-              </motion.div>
-
-              <div className="flex tracking-tighter">
-                <button
-                  type="button"
-                  onClick={() => setPrayerModalOpen(true)}
-                  className="flex h-[70px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-400 to-orange-600 px-4 text-white transition-all hover:from-orange-500 hover:to-orange-700 hover:shadow-md active:from-orange-600 active:to-orange-800">
-                  <FaPen className="h-5 w-5" />
-                  <span className="ml-2">기도제목 작성하여 제출하기</span>
-                </button>
-              </div>
-            </div>
+            {/* 제출 버튼 컴포넌트 */}
+            <SubmitButtonPanel isSaving={isSaving} onPrayerButtonClick={() => setPrayerModalOpen(true)} />
           </div>
         </form>
 
+        {/* 기록 목록 컴포넌트 */}
         <RecordList records={records} handleDeleteRecord={handleDeleteRecord} />
       </main>
 
+      {/* modal 컴포넌트 */}
       <AnimatePresence>
         {showSuccessModal && (
           <SuccessModal
@@ -297,6 +240,7 @@ const QtCheck = () => {
             qtDone={qtDone}
             bibleReadDone={bibleReadDone}
             writingDone={writingDone}
+            dawnPrayerAttended={dawnPrayerAttended}
             onClose={() => setShowSuccessModal(false)}
           />
         )}
