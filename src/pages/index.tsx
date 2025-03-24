@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { pretendard } from '../lib/fonts';
 import Header from '../components/Header';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 // 서버점검 컴포넌트
 import MaintenanceBanner from '../components/MaintenanceBanner';
@@ -14,17 +16,22 @@ import { useMaintenanceStatus } from '../hooks/useMaintenanceStatus';
 
 // components
 import QtCheck from './qt-check';
-// import DevFeatures from '../components/DevFeatures';
 import HomePageBanner from '../components/home/HomePageBanner';
 import NoticeSection from '../components/home/NoticeSection';
 import StatisticsSection from '../components/home/StatisticsSection';
 import TemperatureSection from '../components/home/TemperatureSection';
 
 // modals
-// import DevFeatureModal from '../components/DevFeatureModal';
 import ExportFeatureModal from '../components/ExportFeatureModal';
 import FamilyAccessModal from '../components/FamilyAccessModal';
 import PrayerModal from '../components/prayer/PrayerModal';
+
+// 캠퍼스 선택 버튼 컴포넌트 추가
+import CampusSelectButton from '../components/CampusSelectButton';
+
+// 리디렉션
+//src\hooks\useCampusLogin.ts
+// src\components\campus\CampusAccessLoginForm.tsx
 
 export const animations = {
   container: {
@@ -51,27 +58,55 @@ export const animations = {
 };
 
 export default function Home() {
+  const router = useRouter();
   // hooks
   const { totals } = useHomeData();
   const {
     isPrayerModalOpen,
     setPrayerModalOpen,
-    // showDevFeatures,
-    // showDevFeatureModal,
-    // setShowDevFeatureModal,
-    // handleDevFeatureConfirm,
     showExportFeatureModal,
     setShowExportFeatureModal,
     isFamilyAccessModalOpen,
     setFamilyAccessModalOpen,
-
-    // handleExportToXLSX,
     handleFamilyAccessConfirm,
   } = useHomeModals();
   const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
 
   // 서버 점검 상태 관리
   const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
+
+  // 캠퍼스 정보 상태
+  const [selectedCampus, setSelectedCampus] = useState<string | null>(null);
+
+  // 로컬 스토리지에서 캠퍼스 정보 가져오기 및 권한 확인
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCampus = localStorage.getItem('selectedCampus');
+      const campusAuthorized = localStorage.getItem('campusAuthorized') === 'true';
+      const accessLevel = localStorage.getItem('accessLevel');
+
+      if (savedCampus) {
+        setSelectedCampus(savedCampus);
+
+        // 이미 인증된 사용자인 경우 적절한 캠퍼스 페이지로 자동 리디렉션
+        if (campusAuthorized) {
+          if (savedCampus === 'prayer') {
+            if (accessLevel === 'advanced') {
+              router.push('/campusSelect/prayerCampus02');
+            } else {
+              router.push('/campusSelect/prayerCampus01');
+            }
+          } else if (savedCampus === 'word') {
+            if (accessLevel === 'advanced') {
+              router.push('/campusSelect/wordCampus02');
+            } else {
+              router.push('/campusSelect/wordCampus01');
+            }
+          }
+        }
+      }
+    }
+  }, [router]);
 
   // 서버 점검 중이면 점검 화면 표시
   if (isMaintenanceMode) {
@@ -83,6 +118,11 @@ export default function Home() {
       <Header />
 
       <HomePageBanner />
+
+      {/* 캠퍼스 선택 버튼 */}
+      <div className="container mx-auto max-w-2xl px-4 py-2">
+        <CampusSelectButton selectedCampus={selectedCampus} clearAuthOnClick={false} />
+      </div>
 
       <main className="container mx-auto max-w-6xl px-4 py-2">
         {/* 점검 예정 알림 */}
@@ -104,7 +144,7 @@ export default function Home() {
           setShowTemperatures={setShowTemperatures}
         />
 
-        {/* 알림판 섹션 */}
+        {/* QT 체크 구분선 */}
         <motion.div
           variants={animations.container}
           initial="hidden"
@@ -117,22 +157,10 @@ export default function Home() {
         </motion.div>
 
         <QtCheck />
-
-        {/* 개발 기능이 켜져있을 때만 보이는 영역 */}
-        {/* {showDevFeatures && (
-          <DevFeatures
-            setPrayerModalOpen={setPrayerModalOpen}
-            handleExportToXLSX={handleExportToXLSX}
-            animations={animations}
-          />
-        )} */}
       </main>
 
       {/* modal 컴포넌트들 */}
       <AnimatePresence>
-        {/* {showDevFeatureModal && (
-          <DevFeatureModal onConfirm={handleDevFeatureConfirm} onCancel={() => setShowDevFeatureModal(false)} />
-        )} */}
         {showExportFeatureModal && <ExportFeatureModal onClose={() => setShowExportFeatureModal(false)} />}
         {isFamilyAccessModalOpen && (
           <FamilyAccessModal onClose={() => setFamilyAccessModalOpen(false)} onConfirm={handleFamilyAccessConfirm} />
