@@ -13,7 +13,7 @@ export default function FamilyAccessPage() {
 
   // 로그인 상태 확인 및 리디렉션 처리
   useEffect(() => {
-    // 항상 인증 상태를 초기화하여 로그인 페이지를 보여줌
+    // 항상 인증 상태를 초기화하여 로그인 페이지로 나타나게
     localStorage.removeItem('familyAuthorized');
   }, [router.query]);
 
@@ -47,14 +47,14 @@ export default function FamilyAccessPage() {
         localStorage.setItem('familyAuthorized', 'true');
         localStorage.setItem('familyLastLogin', new Date().toISOString());
         setLoginAttempts(0);
-        // 성공 시 FamilyAccessLoginForm 내부에서 /familyManagement로 리디렉션
+        // 로그인 성공 시 FamilyAccessLoginForm -> familyManagement로 리디렉션
       } else {
         // 인증 실패
         const attempts = loginAttempts + 1;
         setLoginAttempts(attempts);
 
         if (attempts >= 5) {
-          setLoginError('로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.');
+          setLoginError('로그인 시도 횟수를 초과했어요. 잠시 후 다시 시도해주세요.');
           // 5회 실패 시 30초 동안 잠금
           setTimeout(() => {
             setLoginAttempts(0);
@@ -64,8 +64,8 @@ export default function FamilyAccessPage() {
         }
       }
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : '인증 중 오류가 발생했습니다.');
-      console.error('Auth error:', err);
+      setLoginError(err instanceof Error ? err.message : '인증 중 오류가 발생했어요.');
+      console.error('인증 오류:', err);
     } finally {
       setIsLoading(false);
     }
