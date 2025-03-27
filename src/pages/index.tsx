@@ -1,112 +1,44 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { pretendard } from '../lib/fonts';
-import Header from '../components/Header';
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 
-// 서버점검 컴포넌트
-import MaintenanceBanner from '../components/MaintenanceBanner';
-import MaintenanceScreen from '../components/MaintenanceScreen';
+import Header from '../components/Header';
+import { pretendard } from '../lib/fonts';
 
 // hooks
 import { useHomeData } from '../hooks/useHomeData';
-import { useHomeModals } from '../hooks/useHomeModals';
 import { useTemperatureStats } from '../hooks/useTemperatureStats';
 import { useMaintenanceStatus } from '../hooks/useMaintenanceStatus';
 
 // components
 import QtCheck from './qt-check';
+import CampusSelectButton from '../components/CampusSelectButton';
+
+// HomepageBanner, NoticeSection, StatisticsSection, TemperatureSection 컴포넌트 import
 import HomePageBanner from '../components/home/HomePageBanner';
 import NoticeSection from '../components/home/NoticeSection';
 import StatisticsSection from '../components/home/StatisticsSection';
 import TemperatureSection from '../components/home/TemperatureSection';
 
-// modals
-import ExportFeatureModal from '../components/ExportFeatureModal';
-import FamilyAccessModal from '../components/FamilyAccessModal';
-import PrayerModal from '../components/prayer/PrayerModal';
-
-// 캠퍼스 선택 버튼 컴포넌트 추가
-import CampusSelectButton from '../components/CampusSelectButton';
-
-// 리디렉션
-//src\hooks\useCampusLogin.ts
-// src\components\campus\CampusAccessLoginForm.tsx
-
-export const animations = {
-  container: {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
-      },
-    },
-  },
-  item: {
-    hidden: { opacity: 0, y: 50 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        duration: 0.8,
-      },
-    },
-  },
-};
+// 점검 화면 import
+import MaintenanceScreen from '../components/MaintenanceScreen';
+import MaintenanceBanner from '../components/MaintenanceBanner';
 
 export default function Home() {
-  const router = useRouter();
   // hooks
   const { totals } = useHomeData();
-  const {
-    isPrayerModalOpen,
-    setPrayerModalOpen,
-    showExportFeatureModal,
-    setShowExportFeatureModal,
-    isFamilyAccessModalOpen,
-    setFamilyAccessModalOpen,
-    handleFamilyAccessConfirm,
-  } = useHomeModals();
   const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
+  const { maintenanceStatus, isMaintenanceMode, hasScheduledMaintenance } = useMaintenanceStatus();
 
-  // 서버 점검 상태 관리
-  const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
-
-  // 캠퍼스 정보 상태
+  // 선택된 캠퍼스 상태 관리
   const [selectedCampus, setSelectedCampus] = useState<string | null>(null);
 
-  // 로컬 스토리지에서 캠퍼스 정보 가져오기 및 권한 확인
+  // 로컬 스토리지에서 선택된 캠퍼스 정보 가져오기
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedCampus = localStorage.getItem('selectedCampus');
-      const campusAuthorized = localStorage.getItem('campusAuthorized') === 'true';
-      const accessLevel = localStorage.getItem('accessLevel');
-
-      if (savedCampus) {
-        setSelectedCampus(savedCampus);
-
-        // 이미 인증된 사용자인 경우 적절한 캠퍼스 페이지로 자동 리디렉션
-        if (campusAuthorized) {
-          if (savedCampus === 'prayer') {
-            if (accessLevel === 'advanced') {
-              router.push('/campusSelect/prayerCampus02');
-            } else {
-              router.push('/campusSelect/prayerCampus01');
-            }
-          } else if (savedCampus === 'word') {
-            if (accessLevel === 'advanced') {
-              router.push('/campusSelect/wordCampus02');
-            } else {
-              router.push('/campusSelect/wordCampus01');
-            }
-          }
-        }
-      }
+    const storedCampus = localStorage.getItem('selectedCampus');
+    if (storedCampus) {
+      setSelectedCampus(storedCampus);
     }
-  }, [router]);
+  }, []);
 
   // 서버 점검 중이면 점검 화면 표시
   if (isMaintenanceMode) {
@@ -114,39 +46,41 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
+    <div className={pretendard.className}>
       <Header />
 
-      <HomePageBanner />
-
-      {/* 캠퍼스 선택 버튼 */}
-      <div className="container mx-auto max-w-2xl px-4 py-2">
-        <CampusSelectButton selectedCampus={selectedCampus} clearAuthOnClick={false} />
-      </div>
-
       <main className="container mx-auto max-w-6xl px-4 py-2">
-        {/* 점검 예정 알림 */}
-        {maintenanceStatus.starts_at && new Date(maintenanceStatus.starts_at) > new Date() && (
+        {/* 예정된 점검이 있을때 배너 표시 */}
+        {hasScheduledMaintenance && maintenanceStatus.starts_at && (
           <MaintenanceBanner
-            message={`예정된 점검 안내: ${maintenanceStatus.message}`}
+            message={maintenanceStatus.message || '서버 점검이 예정되어 있어요.'}
             startsAt={new Date(maintenanceStatus.starts_at)}
             endsAt={maintenanceStatus.ends_at ? new Date(maintenanceStatus.ends_at) : undefined}
           />
         )}
 
+        <div className="container mx-auto mb-4 w-[640px] rounded-xl tracking-tight xs:w-full">
+          <CampusSelectButton selectedCampus={selectedCampus} clearAuthOnClick={false} />
+        </div>
+        {/* 캠퍼스 선택 버튼 추가 */}
+
+        {/* 홈페이지 배너 */}
+        <HomePageBanner />
+
+        {/* 공지사항 섹션 */}
         <NoticeSection />
 
+        {/* 통계 섹션 */}
         <StatisticsSection totals={totals} />
 
+        {/* 온도 섹션 */}
         <TemperatureSection
           userTemps={userTemps}
           showTemperatures={showTemperatures}
           setShowTemperatures={setShowTemperatures}
         />
 
-        {/* QT 체크 구분선 */}
         <motion.div
-          variants={animations.container}
           initial="hidden"
           animate="show"
           className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
@@ -158,15 +92,6 @@ export default function Home() {
 
         <QtCheck />
       </main>
-
-      {/* modal 컴포넌트들 */}
-      <AnimatePresence>
-        {showExportFeatureModal && <ExportFeatureModal onClose={() => setShowExportFeatureModal(false)} />}
-        {isFamilyAccessModalOpen && (
-          <FamilyAccessModal onClose={() => setFamilyAccessModalOpen(false)} onConfirm={handleFamilyAccessConfirm} />
-        )}
-      </AnimatePresence>
-      <PrayerModal isOpen={isPrayerModalOpen} onClose={() => setPrayerModalOpen(false)} />
     </div>
   );
 }
