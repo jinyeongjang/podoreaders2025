@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 import Header from '../components/Header';
@@ -59,7 +58,7 @@ export default function Home() {
           />
         )}
 
-        <div className="container mx-auto mb-4 w-[640px] rounded-xl tracking-tight xs:w-full">
+        <div className="container mx-auto mb-2 w-[640px] rounded-xl tracking-tight xs:w-full">
           <CampusSelectButton selectedCampus={selectedCampus} clearAuthOnClick={false} />
         </div>
         {/* 캠퍼스 선택 버튼 추가 */}
@@ -80,15 +79,12 @@ export default function Home() {
           setShowTemperatures={setShowTemperatures}
         />
 
-        <motion.div
-          initial="hidden"
-          animate="show"
-          className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
+        <div className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-white"></h2>
           </div>
           <p className="text-md text-white"></p>
-        </motion.div>
+        </div>
 
         <QtCheck />
       </main>
