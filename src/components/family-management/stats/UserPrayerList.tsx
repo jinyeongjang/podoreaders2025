@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { FaCopy, FaCheck } from 'react-icons/fa';
+import { FaCopy, FaCheck, FaDatabase } from 'react-icons/fa';
 import Pagination from '../../common/Pagination';
+import Link from 'next/link';
 
 // Prayer 인터페이스 type 정의
 interface Prayer {
@@ -33,6 +34,17 @@ const UserPrayerList = ({ prayers, totalPages, currentPage, onPageChange }: User
 
   return (
     <div className="space-y-3">
+      {/* 전체 기도제목 데이터베이스 보기 링크 */}
+      <div className="mb-2 flex justify-end">
+        <Link
+          href="/prayercampus01/familyPrayerDataTable"
+          className="flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-600 transition-all hover:bg-indigo-100">
+          <FaDatabase size={12} />
+          <span>전체 기도제목 보기</span>
+        </Link>
+      </div>
+
+      {/* 기도제목 목록 */}
       {prayers.length > 0 ? (
         prayers.map((prayer) => (
           <div key={prayer.id} className="rounded-lg bg-gray-50 p-3">
