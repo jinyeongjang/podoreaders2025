@@ -11,6 +11,7 @@ export interface QtRecord {
   qt_done: boolean;
   bible_read_done: boolean;
   writing_done: boolean;
+  dawn_prayer_attended: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -34,7 +35,9 @@ export const qtAPI = {
   async getByDateRange(startDate: string, endDate: string) {
     const { data, error } = await supabase
       .from('qt_records')
-      .select('id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done')
+      .select(
+        'id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done, dawn_prayer_attended',
+      )
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date', { ascending: false });
@@ -46,7 +49,9 @@ export const qtAPI = {
   async getByUser(userName: string) {
     const { data, error } = await supabase
       .from('qt_records')
-      .select('id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done')
+      .select(
+        'id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done, dawn_prayer_attended',
+      )
       .eq('user_name', userName)
       .order('date', { ascending: false });
 
@@ -65,7 +70,9 @@ export const qtAPI = {
     const { data, error } = await supabase
       .from('qt_records')
       .insert([recordWithTimestamp])
-      .select('id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done')
+      .select(
+        'id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done, dawn_prayer_attended',
+      )
       .single();
 
     if (error) throw error;
@@ -83,7 +90,9 @@ export const qtAPI = {
       .from('qt_records')
       .update(recordWithTimestamp)
       .eq('id', id)
-      .select('id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done')
+      .select(
+        'id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done, dawn_prayer_attended',
+      )
       .single();
 
     if (error) throw error;
@@ -101,7 +110,7 @@ export const qtAPI = {
 
     const { data, error } = await supabase
       .from('qt_records')
-      .select('id, user_name, date, qt_count, bible_read_count, qt_done, bible_read_done, writing_done')
+      .select('*')
       .eq('date', kstDate)
       .eq('user_name', userName)
       .single();
