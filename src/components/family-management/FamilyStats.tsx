@@ -10,10 +10,6 @@ interface FamilyStatsProps {
     qtTotal: number;
     bibleTotal: number;
   };
-  stats: {
-    total: number;
-    answered: number;
-  };
   userList: string[];
   userStats: Record<
     string,
