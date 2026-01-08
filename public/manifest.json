@@ -1,15 +1,17 @@
 {
-  "name": "포도리더스",
+  "name": "포도리더스 - 큐티 말씀 기록 플랫폼",
   "short_name": "포도리더스",
-  "description": "포도리더스는 큐티, 말씀읽기 횟수를 기록하는 플랫폼 입니다.",
+  "description": "큐티, 말씀 읽기, 필사 횟수를 기록하는 가족원 전용 플랫폼",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "theme_color_dark": "#ffffff",
-  "background_color_dark": "#ffffff",
-  "orientation": "portrait",
-  "categories": ["lifestyle", "utilities"],
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "categories": ["lifestyle", "productivity", "utilities"],
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/images/icon-192.png",
@@ -20,7 +22,8 @@
     {
       "src": "/images/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "screenshots": [
@@ -28,7 +31,44 @@
       "src": "https://opengraph.b-cdn.net/production/images/78070067-7ff7-4428-a8d6-3cf0d110a85e.png?token=40UV1d9UAxn1tGtkHifEDWH8MUwrioYrGe78Qud4qEc&height=600&width=1200&expires=33274150734",
       "sizes": "1200x630",
       "type": "image/png",
-      "description": "포도리더스 메인 화면"
+      "form_factor": "wide",
+      "label": "포도리더스 메인 화면"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "캠퍼스 선택",
+      "short_name": "캠퍼스",
+      "description": "말씀 캠퍼스 선택하기",
+      "url": "/campusSelect",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "QT 체크",
+      "short_name": "QT",
+      "description": "오늘의 QT 체크하기",
+      "url": "/qt-check",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
