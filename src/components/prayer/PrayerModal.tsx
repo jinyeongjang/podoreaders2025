@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pretendard } from '../../lib/fonts';
 import { useRouter } from 'next/router';
-import { usePrayer } from '../../context/PrayerContext';
 import { supabase } from '../../lib/supabaseClient';
 import PrayerSuccessModal from './PrayerSuccessModal';
 import PrayerFormHeader from './PrayerFormHeader';
@@ -28,7 +27,6 @@ interface PrayerModalProps {
 
 export default function PrayerModal({ isOpen, onClose }: PrayerModalProps) {
   const router = useRouter();
-  usePrayer();
   const [newRequest, setNewRequest] = useState<Partial<PrayerInput>>({
     content: '',
     user_name: '',
