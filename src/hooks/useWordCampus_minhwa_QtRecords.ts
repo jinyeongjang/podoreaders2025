@@ -1,10 +1,28 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { qtAPI, QtRecord } from '../lib/qtAPI';
+import { supabase } from '../lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { DailyRecord } from '../types/records';
 import { getCurrentKSTDate, formatToKST } from '../utils/dateUtils';
 
-export const useQtRecords = (userName: string) => {
+// 말씀캠퍼스 1팀 전용 QT 기록 타입
+interface WordCampus_minhwa_QtRecord {
+  id?: number;
+  user_name: string;
+  date: string;
+  qt_count: number;
+  bible_read_count: number;
+  qt_done: boolean;
+  bible_read_done: boolean;
+  writing_done: boolean;
+  dawn_prayer_attended: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// supabase 테이블 이름 : minhwa_QT_Records 로 정의
+const TABLE_NAME = 'wordCampus_minhwa_QT_Records';
+
+export const useWordCampus_minhwa_QtRecords = (userName: string) => {
   const [selectedDate, setSelectedDate] = useState(getCurrentKSTDate());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [qtCount, setQtCountState] = useState(0);
@@ -12,7 +30,6 @@ export const useQtRecords = (userName: string) => {
   const [qtDone, setQtDone] = useState(false);
   const [bibleReadDone, setBibleReadDone] = useState(false);
   const [writingDone, setWritingDone] = useState(false);
-  // 새벽기도 상태 추가
   const [dawnPrayerAttended, setDawnPrayerAttended] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [records, setRecords] = useState<DailyRecord[]>([]);
@@ -20,7 +37,7 @@ export const useQtRecords = (userName: string) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
 
-  // 단순화된 setter 함수
+  // Setter 함수
   const setQtCount = (value: number) => {
     setQtCountState(value);
   };
@@ -29,13 +46,37 @@ export const useQtRecords = (userName: string) => {
     setBibleReadCountState(value);
   };
 
+  // 특정 날짜와 사용자의 기록 조회
+  const findByDateAndUser = async (date: string, user: string): Promise<WordCampus_minhwa_QtRecord | null> => {
+    const { data, error } = await supabase.from(TABLE_NAME).select('*').eq('date', date).eq('user_name', user).single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error finding record:', error);
+      return null;
+    }
+
+    return data;
+  };
+
+  // 모든 기록 조회
+  const getAllRecords = async (): Promise<WordCampus_minhwa_QtRecord[]> => {
+    const { data, error } = await supabase.from(TABLE_NAME).select('*').order('date', { ascending: false });
+
+    if (error) {
+      console.error('Error getting all records:', error);
+      return [];
+    }
+
+    return data || [];
+  };
+
   // 날짜에 따른 기록 로딩
   const loadRecordForDate = useCallback(
     async (date: string) => {
       if (!userName) return;
 
       try {
-        const record = await qtAPI.findByDateAndUser(date, userName);
+        const record = await findByDateAndUser(date, userName);
         if (record) {
           setQtCount(record.qt_count);
           setBibleReadCount(record.bible_read_count);
@@ -62,8 +103,7 @@ export const useQtRecords = (userName: string) => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // Supabase에서 기록 가져오기
-        const data = await qtAPI.getAll();
+        const data = await getAllRecords();
         if (data) {
           const formattedRecords = data.map((record) => ({
             date: formatToKST(new Date(record.date)),
@@ -78,14 +118,13 @@ export const useQtRecords = (userName: string) => {
           setRecords(formattedRecords);
 
           if (userName) {
-            const userRecord = await qtAPI.findByDateAndUser(selectedDate, userName);
+            const userRecord = await findByDateAndUser(selectedDate, userName);
             if (userRecord) {
               setQtCount(userRecord.qt_count);
               setBibleReadCount(userRecord.bible_read_count);
               setQtDone(userRecord.qt_done);
               setBibleReadDone(userRecord.bible_read_done);
               setWritingDone(userRecord.writing_done);
-              // 새벽기도 상태 설정
               setDawnPrayerAttended(userRecord.dawn_prayer_attended || false);
             }
           }
@@ -98,114 +137,13 @@ export const useQtRecords = (userName: string) => {
     loadInitialData();
 
     // 실시간 구독 설정
-    const channel = qtAPI.subscribeToChanges(async (payload) => {
-      console.log('Realtime change received:', payload);
+    const channel = supabase
+      .channel(`${TABLE_NAME}_changes`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, async (payload) => {
+        console.log('Realtime change received:', payload);
 
-      // 변경사항이 발생하면 데이터 다시 로드
-      const updatedData = await qtAPI.getAll();
-      const formattedRecords = updatedData.map((record) => ({
-        date: formatToKST(new Date(record.date)),
-        qtCount: record.qt_count,
-        bibleReadCount: record.bible_read_count,
-        qtDone: record.qt_done,
-        bibleReadDone: record.bible_read_done,
-        writingDone: record.writing_done,
-        dawnPrayerAttended: record.dawn_prayer_attended || false,
-        userName: record.user_name,
-      }));
-      setRecords(formattedRecords);
-
-      // 현재 선택된 날짜의 기록 업데이트
-      if (userName) {
-        const currentRecord = await qtAPI.findByDateAndUser(selectedDate, userName);
-        if (currentRecord) {
-          setQtCount(currentRecord.qt_count);
-          setBibleReadCount(currentRecord.bible_read_count);
-          setQtDone(currentRecord.qt_done);
-          setBibleReadDone(currentRecord.bible_read_done);
-          setWritingDone(currentRecord.writing_done);
-          setDawnPrayerAttended(currentRecord.dawn_prayer_attended || false);
-        }
-      }
-    });
-
-    realtimeChannelRef.current = channel;
-
-    // 컴포넌트 언마운트 시 구독 해제
-    return () => {
-      if (realtimeChannelRef.current) {
-        qtAPI.unsubscribe(realtimeChannelRef.current);
-      }
-    };
-  }, [selectedDate, userName, loadRecordForDate]);
-
-  // 데이터 저장 함수
-  const saveRecord = async () => {
-    if (!userName) {
-      return false;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const now = new Date();
-      const recordData: QtRecord = {
-        user_name: userName.trim(),
-        date: selectedDate,
-        qt_count: qtCount,
-        bible_read_count: bibleReadCount,
-        qt_done: qtDone,
-        bible_read_done: bibleReadDone,
-        writing_done: writingDone,
-        // 새벽기도 참석 데이터 추가
-        dawn_prayer_attended: dawnPrayerAttended,
-        created_at: now.toISOString(),
-        updated_at: now.toISOString(),
-      };
-
-      // Supabase에 저장
-      const existingRecord = await qtAPI.findByDateAndUser(selectedDate, userName.trim());
-      if (existingRecord) {
-        await qtAPI.update(existingRecord.id!, recordData);
-      } else {
-        await qtAPI.create(recordData);
-      }
-
-      // 데이터 갱신
-      const updatedRecords = await qtAPI.getAll();
-      const formattedRecords = updatedRecords.map((record) => ({
-        date: formatToKST(new Date(record.date)),
-        qtCount: record.qt_count,
-        bibleReadCount: record.bible_read_count,
-        qtDone: record.qt_done,
-        bibleReadDone: record.bible_read_done,
-        writingDone: record.writing_done,
-        // 새벽기도 데이터도 레코드에 포함
-        dawnPrayerAttended: record.dawn_prayer_attended || false,
-        userName: record.user_name,
-      }));
-      setRecords(formattedRecords);
-
-      setIsSaving(false);
-      setShowSuccessModal(true);
-      return true;
-    } catch (error) {
-      console.error('Failed to save record:', error);
-      setIsSaving(false);
-      return false;
-    }
-  };
-
-  // 기록 삭제 함수
-  const deleteRecord = async (date: string, user: string) => {
-    try {
-      const record = await qtAPI.findByDateAndUser(date, user);
-      if (record) {
-        await qtAPI.delete(record.id!);
-
-        // 데이터 갱신
-        const updatedRecords = await qtAPI.getAll();
-        const formattedRecords = updatedRecords.map((record) => ({
+        const updatedData = await getAllRecords();
+        const formattedRecords = updatedData.map((record) => ({
           date: formatToKST(new Date(record.date)),
           qtCount: record.qt_count,
           bibleReadCount: record.bible_read_count,
@@ -216,32 +154,119 @@ export const useQtRecords = (userName: string) => {
           userName: record.user_name,
         }));
         setRecords(formattedRecords);
-        return true;
+
+        if (userName) {
+          const currentRecord = await findByDateAndUser(selectedDate, userName);
+          if (currentRecord) {
+            setQtCount(currentRecord.qt_count);
+            setBibleReadCount(currentRecord.bible_read_count);
+            setQtDone(currentRecord.qt_done);
+            setBibleReadDone(currentRecord.bible_read_done);
+            setWritingDone(currentRecord.writing_done);
+            setDawnPrayerAttended(currentRecord.dawn_prayer_attended || false);
+          }
+        }
+      })
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+
+    return () => {
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
       }
+    };
+  }, [selectedDate, userName]);
+
+  // 데이터 저장 함수
+  const saveRecord = async () => {
+    if (!userName) {
       return false;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const existingRecord = await findByDateAndUser(selectedDate, userName);
+
+      const recordData: Omit<WordCampus_minhwa_QtRecord, 'id' | 'created_at' | 'updated_at'> = {
+        user_name: userName,
+        date: selectedDate,
+        qt_count: qtCount,
+        bible_read_count: bibleReadCount,
+        qt_done: qtDone,
+        bible_read_done: bibleReadDone,
+        writing_done: writingDone,
+        dawn_prayer_attended: dawnPrayerAttended,
+      };
+
+      if (existingRecord) {
+        // 업데이트
+        const { error } = await supabase
+          .from(TABLE_NAME)
+          .update({ ...recordData, updated_at: new Date().toISOString() })
+          .eq('id', existingRecord.id);
+
+        if (error) throw error;
+      } else {
+        // 새로 삽입
+        const { error } = await supabase.from(TABLE_NAME).insert([recordData]);
+
+        if (error) throw error;
+      }
+
+      setShowSuccessModal(true);
+      return true;
     } catch (error) {
-      console.error('Failed to delete record:', error);
+      console.error('Save error:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 기록 삭제 함수
+  const deleteRecord = async (date: string, user: string) => {
+    try {
+      const { error } = await supabase.from(TABLE_NAME).delete().eq('date', date).eq('user_name', user);
+
+      if (error) throw error;
+
+      // 삭제 후 현재 선택된 날짜의 기록이 삭제된 경우 상태 초기화
+      if (date === selectedDate && user === userName) {
+        setQtCount(0);
+        setBibleReadCount(0);
+        setQtDone(false);
+        setBibleReadDone(false);
+        setWritingDone(false);
+        setDawnPrayerAttended(false);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Delete error:', error);
       return false;
     }
   };
 
-  // 달력 관련 함수
-  const handleDateSelect = (date: string) => {
+  // 날짜 선택 핸들러
+  const handleDateSelect = async (date: string) => {
     setSelectedDate(date);
-    loadRecordForDate(date);
-    setIsCalendarOpen(false); // 날짜 선택 후 달력 닫기
+    await loadRecordForDate(date);
   };
 
+  // 월 변경 핸들러
   const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1));
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1));
   };
 
+  // 캘린더 토글
   const toggleCalendar = () => {
-    setIsCalendarOpen(!isCalendarOpen);
+    setIsCalendarOpen((prev) => !prev);
   };
 
   return {

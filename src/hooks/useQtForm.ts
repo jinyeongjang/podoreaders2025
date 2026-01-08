@@ -14,6 +14,8 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
   const [qtDone, setQtDone] = useState(false);
   const [bibleReadDone, setBibleReadDone] = useState(false);
   const [writingDone, setWritingDone] = useState(false);
+  // 새벽기도 참석 상태 추가
+  const [dawnPrayerAttended, setDawnPrayerAttended] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [userName, setUserName] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -33,6 +35,8 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
           setQtDone(record.qt_done);
           setBibleReadDone(record.bible_read_done);
           setWritingDone(record.writing_done || false);
+          // 새벽기도 상태 설정
+          setDawnPrayerAttended(record.dawn_prayer_attended || false);
         } else {
           // 기록이 없는 경우 초기화
           setQtCount(0);
@@ -40,6 +44,7 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
           setQtDone(false);
           setBibleReadDone(false);
           setWritingDone(false);
+          setDawnPrayerAttended(false);
         }
       } catch (error) {
         console.error('Failed to load record:', error);
@@ -83,6 +88,8 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
         qt_done: qtDone,
         bible_read_done: bibleReadDone,
         writing_done: writingDone,
+        // 새벽기도 참석 데이터 추가
+        dawn_prayer_attended: dawnPrayerAttended,
         created_at: now.toISOString(),
         updated_at: now.toISOString(),
       };
@@ -104,6 +111,8 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
         qtDone: record.qt_done,
         bibleReadDone: record.bible_read_done,
         writingDone: record.writing_done || false,
+        // 새벽기도 데이터 추가
+        dawnPrayerAttended: record.dawn_prayer_attended || false,
         userName: record.user_name,
       }));
 
@@ -128,6 +137,7 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
     setQtDone(false);
     setBibleReadDone(false);
     setWritingDone(false);
+    setDawnPrayerAttended(false); // 새벽기도 상태도 초기화
   };
 
   // 사용자 선택
@@ -147,6 +157,9 @@ export function useQtForm({ selectedDate, updateRecords }: UseQtFormProps) {
     setBibleReadDone,
     writingDone,
     setWritingDone,
+    // 새벽기도 상태 및 setter 반환
+    dawnPrayerAttended,
+    setDawnPrayerAttended,
     isSaving,
     userName,
     setUserName,

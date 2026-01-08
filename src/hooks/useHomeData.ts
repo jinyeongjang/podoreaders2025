@@ -1,99 +1,44 @@
-import { useState, useEffect, useRef } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { prayerAPI, supabase } from '../lib/supabase';
-import { QtRecord } from '../lib/qtAPI';
+import { useState, useEffect } from 'react';
+import { supabase } from '../utils/supabase';
 
 export const useHomeData = () => {
-  const [totals, setTotals] = useState({ qtTotal: 0, bibleTotal: 0 });
-  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
+  const [totals, setTotals] = useState({
+    qtTotal: 0,
+    bibleTotal: 0,
+  });
 
-  // 데이터를 새로 고치고 총계를 업데이트하는 함수
-  const updateData = async () => {
-    try {
-      const { data, error } = await supabase.from('qt_records').select('*').returns<QtRecord[]>();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        return;
-      }
-
-      if (data) {
-        // 총계 계산
-        const newTotals = data.reduce(
-          (acc, record) => ({
-            qtTotal: acc.qtTotal + (record.qt_count || 0),
-            bibleTotal: acc.bibleTotal + (record.bible_read_count || 0),
-          }),
-          { qtTotal: 0, bibleTotal: 0 },
-        );
-
-        setTotals(newTotals);
-      }
-    } catch (error) {
-      console.error('Failed to update records:', error);
-    }
-  };
-
-  // 기도 제목 데이터 불러오기
+  // 가족원 전체 QT 및 말씀 읽기 통계 로드
   useEffect(() => {
-    const fetchPrayers = async () => {
+    const fetchTotals = async () => {
       try {
-        const data = await prayerAPI.getAll();
-        if (data) {
-          // 필요한 경우 여기서 데이터 처리
+        // QT 및 말씀 읽기 기록 가져오기
+        const { data, error } = await supabase
+          .from('qt_records')
+          .select('qt_count, bible_read_count')
+          .gte('date', '2025-01-01'); // 2025년부터의 기록만 가져오기
+
+        if (error) throw error;
+
+        // 합계 계산
+        let qtSum = 0;
+        let bibleSum = 0;
+
+        if (data && data.length > 0) {
+          qtSum = data.reduce((sum, record) => sum + (record.qt_count || 0), 0);
+          bibleSum = data.reduce((sum, record) => sum + (record.bible_read_count || 0), 0);
         }
+
+        setTotals({
+          qtTotal: qtSum,
+          bibleTotal: bibleSum,
+        });
       } catch (error) {
-        console.error('Failed to fetch prayers:', error);
+        console.error('통계를 불러오는 중 오류가 발생했습니다:', error);
       }
     };
 
-    fetchPrayers();
+    fetchTotals();
   }, []);
 
-  // 실시간 업데이트 설정
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
-
-    const setupRealtimeSubscription = async () => {
-      try {
-        await updateData(); // 초기 데이터 로드
-
-        channel = supabase
-          .channel('custom-all-channel')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'qt_records',
-            },
-            async (payload) => {
-              console.log('Realtime update received:', payload);
-              await updateData();
-            },
-          )
-          .subscribe((status) => {
-            console.log('Subscription status:', status);
-          });
-
-        realtimeChannelRef.current = channel;
-      } catch (error) {
-        console.error('Subscription setup error:', error);
-      }
-    };
-
-    setupRealtimeSubscription();
-
-    return () => {
-      if (channel) {
-        console.log('Cleaning up subscription...');
-        supabase.removeChannel(channel);
-      }
-    };
-  }, []);
-
-  return {
-    totals,
-    updateData,
-  };
+  return { totals };
 };

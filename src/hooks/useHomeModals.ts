@@ -59,6 +59,6 @@ export const useHomeModals = () => {
     handleDevFeatureConfirm,
     handleExportToXLSX,
     handleFamilyAccessClick,
-    handleFamilyAccessConfirm
+    handleFamilyAccessConfirm,
   };
 };
