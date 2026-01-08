@@ -43,7 +43,7 @@ const AppInfoModal = ({ onClose }: AppInfoModalProps) => {
             </div>
           </div>
           <h3 className="mb-1 text-lg font-semibold">포도리더스</h3>
-          <p className="text-center text-sm text-gray-500">버전 1.0.5 / PDOUI 1.0</p>
+          <p className="text-center text-sm text-gray-500">버전 2.5 / PDOUI 2.0</p>
         </div>
 
         {/* 포도리더스 앱 설명 영역 */}
@@ -83,12 +83,6 @@ const AppInfoModal = ({ onClose }: AppInfoModalProps) => {
                 가족장.부가족장은 큐티, 말씀 읽기, 필사횟수를<br></br>현황판 형태로 관리할 수 있습니다.
               </p>
             </div>
-            <div className="rounded-lg bg-gray-50 p-3">
-              <p className="text-sm font-medium text-gray-700">(개발기능) 임원 열람</p>
-              <p className="mt-2 text-xs text-gray-600">
-                캠퍼스 별 가족원 활동 요약 및 통계 정보를 <br></br>말씀온도 그래프로 확인할 수 있습니다.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -99,7 +93,10 @@ const AppInfoModal = ({ onClose }: AppInfoModalProps) => {
             <div className="rounded-lg bg-gray-50 p-3">
               <p className="mb-1 font-medium text-gray-700">Frontend</p>
               <ul className="space-y-1 text-gray-600">
-                <li>Next.js 15.1.3+React</li>
+                <li>초기 : Next.js 15.3.1+React</li>
+                <li>
+                  현재 : [보안 업데이트 적용 완료] <br></br>Next.js 15.5.7+React
+                </li>
                 <li>TypeScript</li>
                 <li>Tailwind CSS</li>
                 <li>Framer Motion</li>
@@ -110,7 +107,8 @@ const AppInfoModal = ({ onClose }: AppInfoModalProps) => {
               <p className="mb-1 font-medium text-gray-700">Backend</p>
               <ul className="space-y-1 text-gray-600">
                 <li>supabase(postgreSQL)</li>
-                <li>google OAuth</li>
+                <li>Social Login google api</li>
+                <li>Social Login kakao api</li>
                 <li>Node.js+Express</li>
               </ul>
             </div>

@@ -2,16 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 테마 시스템 CSS 변수 */
 @layer base {
+  :root {
+    /* 기본 테마 변수 (라이트 모드) */
+    --color-primary: #4f46e5;
+    --color-primary-light: #6366f1;
+    --color-primary-dark: #4338ca;
+    --color-background: #ffffff;
+    --color-background-secondary: #f9fafb;
+    --color-text: #111827;
+    --color-text-secondary: #4b5563;
+    --color-border: #e5e7eb;
+    --color-card: #ffffff;
+    --color-card-hover: #f3f4f6;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* 블루 테마 */
+  .theme-blue {
+    --color-primary: #2563eb;
+    --color-primary-light: #3b82f6;
+    --color-primary-dark: #1d4ed8;
+    --color-background: #f0f9ff;
+    --color-background-secondary: #e0f2fe;
+    --color-text: #0c4a6e;
+    --color-text-secondary: #075985;
+    --color-border: #bae6fd;
+    --color-card: #ffffff;
+    --color-card-hover: #f0f9ff;
+  }
+
+  /* 그린 테마 */
+  .theme-green {
+    --color-primary: #10b981;
+    --color-primary-light: #34d399;
+    --color-primary-dark: #059669;
+    --color-background: #ecfdf5;
+    --color-background-secondary: #d1fae5;
+    --color-text: #064e3b;
+    --color-text-secondary: #065f46;
+    --color-border: #a7f3d0;
+    --color-card: #ffffff;
+    --color-card-hover: #ecfdf5;
+  }
+
+  /* 앰버 테마 */
+  .theme-amber {
+    --color-primary: #f59e0b;
+    --color-primary-light: #fbbf24;
+    --color-primary-dark: #d97706;
+    --color-background: #fffbeb;
+    --color-background-secondary: #fef3c7;
+    --color-text: #92400e;
+    --color-text-secondary: #b45309;
+    --color-border: #fde68a;
+    --color-card: #ffffff;
+    --color-card-hover: #fffbeb;
+  }
+
+  /* 테마 기반 기본 스타일 */
   body {
-    color: #171717;
-    background: #ffffff;
+    color: var(--color-text);
+    background: var(--color-background);
   }
 }
 
+/* 컴포넌트 스타일 - 테마 변수 사용 */
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95;
+    background-color: var(--color-primary);
   }
 
   .btn-icon {
@@ -19,11 +83,43 @@
   }
 
   .card {
-    @apply rounded-2xl bg-white p-6 shadow-sm transition-all hover:shadow-md;
+    @apply rounded-2xl p-6 transition-all;
+    background-color: var(--color-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card:hover {
+    background-color: var(--color-card-hover);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-header {
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .theme-bg {
+    background-color: var(--color-background);
+  }
+
+  .theme-bg-secondary {
+    background-color: var(--color-background-secondary);
+  }
+
+  .theme-text {
+    color: var(--color-text);
+  }
+
+  .theme-text-secondary {
+    color: var(--color-text-secondary);
+  }
+
+  .theme-border {
+    border-color: var(--color-border);
   }
 }
 
-/* Swiper 스타일 커스터마이징 */
+/* Swiper 스타일 커스터마이징 - 테마 변수 적용 */
 .weekly-stats-swiper {
   padding: 20px 0;
   padding-bottom: 40px !important;
@@ -31,14 +127,13 @@
 
 .weekly-stats-swiper .swiper-button-next,
 .weekly-stats-swiper .swiper-button-prev {
-  color: #4f46e5;
+  color: var(--color-primary);
   width: 30px;
   height: 30px;
 }
 
 .weekly-stats-swiper .swiper-pagination-bullet {
-  background: #4f46e5;
-  background: #4f46e5;
+  background: var(--color-primary);
   opacity: 0.3;
 }
 
@@ -75,4 +170,102 @@
 
 .nav-active {
   animation: navPulse 0.3s ease-in-out;
+}
+
+/* 바텀 네비게이션 테마 적용 */
+.bottom-nav {
+  background-color: var(--color-card);
+  border-top: 1px solid var(--color-border);
+}
+
+.bottom-nav-indicator {
+  background-color: var(--color-primary);
+}
+
+/* 모달 테마 적용 */
+.modal-content {
+  background-color: var(--color-card);
+  color: var(--color-text);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--color-border);
+}
+
+/* 로딩 애니메이션 테마 적용 */
+.loading-spinner {
+  border-color: var(--color-border);
+  border-top-color: var(--color-primary);
+}
+
+/* 테마 전환 애니메이션 */
+html {
+  transition: background-color 0.3s ease;
+}
+
+body,
+.card,
+.btn-primary,
+.modal-content {
+  transition: all 0.3s ease;
+}
+
+/* fadeIn 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+body,
+.card,
+.btn-primary,
+.modal-content {
+  transition: all 0.3s ease;
+}
+
+/* fadeIn 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 물결 효과 애니메이션 */
+.wave-animation {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.3) 10px,
+    rgba(255, 255, 255, 0.3) 20px
+  );
+  background-size: 28px 28px;
+  animation: moveWave 2s linear infinite;
+}
+
+@keyframes moveWave {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 28px 28px;
+  }
 }
