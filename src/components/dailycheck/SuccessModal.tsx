@@ -9,6 +9,7 @@ interface SuccessModalProps {
   qtDone: boolean;
   bibleReadDone: boolean;
   writingDone: boolean;
+  dawnPrayerAttended?: boolean;
   onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   qtDone,
   bibleReadDone,
   writingDone,
+  dawnPrayerAttended,
   onClose,
 }) => (
   <motion.div
@@ -63,6 +65,14 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
               )}
             </div>
           </div>
+          {dawnPrayerAttended && (
+            <div className="col-span-2 mt-3 rounded-lg bg-indigo-50 p-3">
+              <h3 className="font-medium text-indigo-700">새벽기도 참석</h3>
+              <div className="mt-2 flex items-center gap-2 text-sm">
+                <span>새벽기도에 참석했어요.</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex justify-end">
           <motion.button

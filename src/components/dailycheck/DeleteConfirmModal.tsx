@@ -22,7 +22,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ date, userName,
 
   // 추후 삭제는 DB에서 비밀번호 설정 후 비교하는 방식으로 변경 예정
   const handleConfirm = () => {
-    if (password === '20251200') {
+    if (password === '20261200') {
       onConfirm();
     } else {
       setError('비밀번호가 올바르지 않습니다.');
@@ -53,7 +53,6 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ date, userName,
             <hr className="flex border-t border-gray-200"></hr>
 
             <p>발급받은 비밀번호 4자리를 입력해주세요.</p>
-            {/* <p>example_test: 1234</p> */}
 
             <div className="flex flex-wrap items-center gap-4 border-t border-gray-200 pt-3">
               <div className="flex items-center gap-2">

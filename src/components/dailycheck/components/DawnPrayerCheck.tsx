@@ -1,4 +1,4 @@
-import { FaCheck } from 'react-icons/fa';
+import { LuSmile } from 'react-icons/lu';
 import { IoClose } from 'react-icons/io5';
 import { RiSunFoggyLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,8 +29,8 @@ const DawnPrayerCheck: React.FC<DawnPrayerCheckProps> = ({ dawnPrayerAttended, s
     <div className="space-y-5">
       <div className="relative mt-8 flex items-center gap-3 overflow-hidden rounded-xl">
         <div className="z-10">
-          <h3 className="text-lg font-semibold text-gray-800">4. 세이래 특별새벽기도 참석 여부</h3>
-          <p className="ml-5 text-sm text-gray-700">현장/온라인 동일 2025.03.31(월) ~ 04.18(금)</p>
+          <h3 className="text-lg font-semibold text-gray-800">4. 새벽기도 참석 여부</h3>
+          {/* <p className="ml-5 text-sm text-gray-700">현장/온라인 동일 2025.03.31(월) ~ 04.18(금)</p> */}
         </div>
       </div>
 
@@ -62,9 +62,9 @@ const DawnPrayerCheck: React.FC<DawnPrayerCheckProps> = ({ dawnPrayerAttended, s
                 stiffness: 300,
                 damping: 15,
               }}
-              className={`flex flex-1 flex-col items-center gap-2 rounded-lg px-4 py-5 shadow-sm transition-colors`}>
+              className={`flex flex-1 flex-col items-center gap-2 rounded-xl px-4 py-5 shadow-sm transition-colors`}>
               <div className="relative">
-                <FaCheck className={`h-8 w-8 transition-colors`} />
+                <LuSmile className={`h-8 w-8 transition-colors`} />
               </div>
               <span className="font-medium">드렸어요</span>
             </motion.button>
@@ -110,8 +110,7 @@ const DawnPrayerCheck: React.FC<DawnPrayerCheckProps> = ({ dawnPrayerAttended, s
                   className="flex items-start gap-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 p-3">
                   <RiSunFoggyLine className="mt-0.5 h-5 w-5 flex-shrink-0 text-indigo-500" />
                   <div className="text-sm">
-                    <p className="font-medium text-indigo-700">오늘도 특별새벽기도에 참여하셨군요!</p>
-                    <p className="mt-1 text-indigo-600/80">남은 기간까지 화이팅하세요!</p>
+                    <p className="font-medium text-indigo-700">오늘도 새벽기도에 참여하셨군요!</p>
                   </div>
                 </motion.div>
               ) : (
@@ -131,7 +130,7 @@ const DawnPrayerCheck: React.FC<DawnPrayerCheckProps> = ({ dawnPrayerAttended, s
 
         <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-3">
           <div className="text-sm text-gray-600">
-            <p>세이래 특별새벽기도 참석 여부는 현장·온라인과 상관없이 매주 통계에 반영됩니다.</p>
+            <p>새벽기도 참석 여부는 현장·온라인과 상관없이 매주 통계에 반영됩니다.</p>
           </div>
         </div>
       </motion.div>

@@ -1,22 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { pretendard } from '../lib/fonts';
-import Calendar from '../components/dailycheck/Calendar';
+import Calendar from '../components/dailycheck/components/Calendar';
 import RecordList from '../components/dailycheck/RecordList';
 import SuccessModal from '../components/dailycheck/SuccessModal';
-import ExportConfirmModal from '../components/dailycheck/ExportConfirmModal';
 import PrayerModal from '../components/prayer/PrayerModal';
 import QtCounterPanel from '../components/dailycheck/QtCounterPanel';
 import SubmitButtonPanel from '../components/dailycheck/SubmitButtonPanel';
-import DawnPrayerCheck from '../components/dailycheck/DawnPrayerCheck';
-import { exportToExcel } from '../utils/excel';
 import { useQtRecords } from '../hooks/useQtRecords';
 import usersData from '../data/users.json';
 import { FaUser, FaChevronDown, FaSpinner } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const QtCheck = () => {
-  const [showExportModal, setShowExportModal] = useState(false);
   const [isPrayerModalOpen, setPrayerModalOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -101,12 +97,6 @@ const QtCheck = () => {
     if (!success) {
       alert('기록 삭제에 실패했습니다.');
     }
-  };
-
-  // 내보내기 확인
-  const handleExportConfirm = () => {
-    exportToExcel(records);
-    setShowExportModal(false);
   };
 
   // 날짜 선택 이벤트 핸들러
@@ -211,13 +201,8 @@ const QtCheck = () => {
               setBibleReadDone={setBibleReadDone}
               writingDone={writingDone}
               setWritingDone={setWritingDone}
-            />
-
-            {/* 새벽기도 체크 컴포넌트 */}
-            <DawnPrayerCheck
               dawnPrayerAttended={dawnPrayerAttended}
               setDawnPrayerAttended={(value) => {
-                console.log('새벽기도 상태 변경:', value ? '참석' : '미참석');
                 setDawnPrayerAttended(value);
               }}
             />
@@ -246,9 +231,7 @@ const QtCheck = () => {
             onClose={() => setShowSuccessModal(false)}
           />
         )}
-        {showExportModal && (
-          <ExportConfirmModal onConfirm={handleExportConfirm} onCancel={() => setShowExportModal(false)} />
-        )}
+
         <PrayerModal isOpen={isPrayerModalOpen} onClose={() => setPrayerModalOpen(false)} />
       </AnimatePresence>
     </div>

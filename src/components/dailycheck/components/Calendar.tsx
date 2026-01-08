@@ -1,5 +1,5 @@
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaChevronDown } from 'react-icons/fa';
-import { formatToKST } from '../../utils/dateUtils';
+import { formatToKST } from '../../../utils/dateUtils';
 
 interface DailyRecord {
   date: string;
@@ -122,7 +122,10 @@ const Calendar: React.FC<CalendarProps> = ({
             <button
               key={index}
               type="button"
-              onClick={() => handleDateSelect(day.date)}
+              onClick={() => {
+                handleDateSelect(day.date);
+                onToggle();
+              }}
               className={`aspect-square rounded-lg p-1 text-sm ${
                 day.isCurrentMonth
                   ? day.date === selectedDate

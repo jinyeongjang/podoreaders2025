@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaBook, FaBible, FaTrash } from 'react-icons/fa';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -26,14 +26,22 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
 
   // 페이지네이션 관련 상태 추가
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [recordsPerPage] = useState<number>(10); // 한 페이지당 보여줄 기록 수
+  const [recordsPerPage] = useState<number>(5); // 한 페이지당 보여줄 기록 수
   const [paginatedRecords, setPaginatedRecords] = useState<DailyRecord[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
+
+  // 기록을 날짜별로 내림차순 정렬 (최근 날짜 정렬)
+  const sortedRecords = useMemo(() => {
+    return [...records].sort((a, b) => {
+      // 날짜 내림차순 정렬 (최근 날짜 정렬
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+  }, [records]);
 
   // 전체 기록이 변경되면 페이지네이션 정보 업데이트
   useEffect(() => {
     // 총 페이지 수 계산
-    const totalPagesCount = Math.max(1, Math.ceil(records.length / recordsPerPage));
+    const totalPagesCount = Math.max(1, Math.ceil(sortedRecords.length / recordsPerPage));
     setTotalPages(totalPagesCount);
 
     // 현재 페이지가 총 페이지 수보다 크면 마지막 페이지로 조정
@@ -43,9 +51,9 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
 
     // 현재 페이지에 맞는 기록 추출
     const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, records.length);
-    setPaginatedRecords(records.slice(startIndex, endIndex));
-  }, [records, currentPage, recordsPerPage]);
+    const endIndex = Math.min(startIndex + recordsPerPage, sortedRecords.length);
+    setPaginatedRecords(sortedRecords.slice(startIndex, endIndex));
+  }, [sortedRecords, currentPage, recordsPerPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -83,7 +91,7 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
       id="records-container">
       {/* 결과 개수 표시 */}
       <div className="ml-2 mt-5 text-sm font-medium text-gray-600">
-        총 <span className="text-[18px] font-bold text-indigo-600">{records.length}</span>개의 기록이 있어요
+        총 <span className="text-[18px] font-bold text-indigo-600">{sortedRecords.length}</span>개의 기록이 있어요
       </div>
 
       {/* 기록 목록 */}
@@ -138,6 +146,8 @@ const RecordList: React.FC<RecordListProps> = ({ records = [], handleDeleteRecor
                   </div>
                 </div>
               </div>
+
+              {/* 기록 삭제 버튼 */}
               <button
                 type="button"
                 onClick={() => handleDeleteClick(record)}
