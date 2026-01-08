@@ -1,75 +1,21 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { pretendard } from '../../lib/fonts';
-import { IoAddCircle } from 'react-icons/io5';
-import Header from '../../components/Header';
+import Header from '../../components/layout/Header';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-
-// 서버점검 컴포넌트
-import MaintenanceBanner from '../../components/MaintenanceBanner';
-import MaintenanceScreen from '../../components/MaintenanceScreen';
-
-// 캠퍼스 선택 버튼 컴포넌트
-import CampusSelectButton from '../../components/CampusSelectButton';
+import { FaUserPlus, FaArrowLeft } from 'react-icons/fa';
 
 // hooks
-import { useHomeData } from '../../hooks/useHomeData';
-import { useHomeModals } from '../../hooks/useHomeModals';
-import { useTemperatureStats } from '../../hooks/useTemperatureStats';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus';
 
 // components
-import QtCheckPrayer01 from '../qtCheckprayer01';
-import HomePageBanner from '../../components/home/HomePageBanner';
-import Prayer01NoticeSection from '../../components/campus/prayer/prayer01NoticeSection';
-import StatisticsSection from '../../components/home/StatisticsSection';
-import TemperatureSection from '../../components/home/TemperatureSection';
-
-// modals
-import ExportFeatureModal from '../../components/ExportFeatureModal';
-import FamilyAccessModal from '../../components/FamilyAccessModal';
-import PrayerModal from '../../components/prayer/PrayerModal';
-
-export const animations = {
-  container: {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
-      },
-    },
-  },
-  item: {
-    hidden: { opacity: 0, y: 50 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        duration: 0.8,
-      },
-    },
-  },
-};
+import MaintenanceScreen from '../../components/MaintenanceScreen';
+import MaintenanceBanner from '../../components/MaintenanceBanner';
 
 export default function Prayer01Page() {
   const router = useRouter();
 
   // hooks
-  const { totals } = useHomeData();
-  const {
-    isPrayerModalOpen,
-    setPrayerModalOpen,
-    showExportFeatureModal,
-    setShowExportFeatureModal,
-    isFamilyAccessModalOpen,
-    setFamilyAccessModalOpen,
-    handleFamilyAccessConfirm,
-  } = useHomeModals();
-  const { userTemps, showTemperatures, setShowTemperatures } = useTemperatureStats();
-  const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
+  const { maintenanceStatus, isMaintenanceMode, hasScheduledMaintenance } = useMaintenanceStatus();
 
   // 캠퍼스 권한 확인
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -82,14 +28,9 @@ export default function Prayer01Page() {
         const campusAuthorized = localStorage.getItem('campusAuthorized') === 'true';
         const selectedCampus = localStorage.getItem('selectedCampus');
         const lastPassword = localStorage.getItem('lastPassword');
-        const accessLevel = localStorage.getItem('accessLevel');
 
-        // 기도 캠퍼스 권한 및 적절한 접근 레벨 확인
-        if (
-          campusAuthorized &&
-          selectedCampus === 'prayer' &&
-          (accessLevel === 'basic' || lastPassword === '1234' || lastPassword === '20250011')
-        ) {
+        // 기도 캠퍼스 권한 확인
+        if (campusAuthorized && selectedCampus === 'prayer' && (lastPassword === '1234' || lastPassword === '5678')) {
           setIsAuthorized(true);
         } else {
           // 권한이 없으면 캠퍼스 선택 페이지로 리디렉션
@@ -101,6 +42,11 @@ export default function Prayer01Page() {
       checkAuth();
     }
   }, [router]);
+
+  // 캠퍼스 선택 페이지로 이동
+  const handleBackToCampusSelect = () => {
+    router.push('/campusSelect');
+  };
 
   // 서버 점검 중이면 점검 화면 표시
   if (isMaintenanceMode) {
@@ -128,69 +74,43 @@ export default function Prayer01Page() {
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${pretendard.className}`}>
       <Header />
 
-      {/* 캠퍼스 선택 버튼 */}
-      <div className="container mx-auto max-w-2xl px-4 py-2">
-        <CampusSelectButton selectedCampus="prayer" clearAuthOnClick={true} />
-      </div>
-
-      <main className="container mx-auto max-w-6xl px-4 py-2">
-        {/* 점검 예정 알림 */}
-        {maintenanceStatus.starts_at && new Date(maintenanceStatus.starts_at) > new Date() && (
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        {/* 예정된 점검이 있을때 배너 표시 */}
+        {hasScheduledMaintenance && maintenanceStatus.starts_at && (
           <MaintenanceBanner
-            message={`예정된 점검 안내: ${maintenanceStatus.message}`}
+            message={maintenanceStatus.message || '서버 점검이 예정되어 있어요.'}
             startsAt={new Date(maintenanceStatus.starts_at)}
             endsAt={maintenanceStatus.ends_at ? new Date(maintenanceStatus.ends_at) : undefined}
           />
         )}
 
-        <div className="container mx-auto max-w-2xl px-4 py-2">
-          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 tracking-tight shadow-md transition-shadow duration-300 hover:shadow-lg">
-            <div className="flex items-center gap-2">
-              <IoAddCircle className="h-5 w-5 text-indigo-600" />
-              <h3 className="text-md font-semibold text-indigo-800">기도캠퍼스 가족</h3>
+        {/* 임시 페이지 안내 */}
+        <div className="container mx-auto mb-8 mt-8 w-full overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg">
+          <div className="relative p-8">
+            {/* 상단 장식 선 */}
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <FaUserPlus className="h-10 w-10" />
+              </div>
+
+              <h2 className="mb-4 text-3xl font-bold text-indigo-800">기도캠퍼스 가족 1팀</h2>
+
+              <p className="mb-8 max-w-md text-lg text-indigo-600">
+                현재 페이지는 준비 중입니다. <br />
+              </p>
+
+              <button
+                onClick={handleBackToCampusSelect}
+                className="mb-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition-all hover:bg-indigo-700 active:scale-95">
+                <FaArrowLeft className="h-4 w-4" />
+                캠퍼스 선택 페이지로 이동
+              </button>
             </div>
-            <p className="mt-1 pl-7 text-sm text-indigo-700">1팀 페이지 입니다.</p>
           </div>
         </div>
-
-        <HomePageBanner />
-
-        {/* 캠퍼스 정보 배너 */}
-
-        <Prayer01NoticeSection />
-
-        <StatisticsSection totals={totals} />
-
-        <TemperatureSection
-          userTemps={userTemps}
-          showTemperatures={showTemperatures}
-          setShowTemperatures={setShowTemperatures}
-        />
-
-        {/* QT 체크 구분선 */}
-        <motion.div
-          variants={animations.container}
-          initial="hidden"
-          animate="show"
-          className="container mx-auto h-[10px] w-[640px] max-w-6xl rounded-t-xl bg-indigo-500 p-5 py-1 tracking-tighter shadow-xl xs:w-full">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-white"></h2>
-          </div>
-          <p className="text-md text-white"></p>
-        </motion.div>
-
-        {/* prayer01 team QT check section */}
-        <QtCheckPrayer01 />
-      </main>
-
-      {/* modal 컴포넌트들 */}
-      <AnimatePresence>
-        {showExportFeatureModal && <ExportFeatureModal onClose={() => setShowExportFeatureModal(false)} />}
-        {isFamilyAccessModalOpen && (
-          <FamilyAccessModal onClose={() => setFamilyAccessModalOpen(false)} onConfirm={handleFamilyAccessConfirm} />
-        )}
-      </AnimatePresence>
-      <PrayerModal isOpen={isPrayerModalOpen} onClose={() => setPrayerModalOpen(false)} />
+      </div>
     </div>
   );
 }

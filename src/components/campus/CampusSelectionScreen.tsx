@@ -146,7 +146,7 @@ function CampusCard({ campus, isSelected, index, onSelect }: CampusCardProps) {
       whileTap={{ scale: 0.98 }}>
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <h3 className={`text-xl font-bold ${getTextStyle()}`}>{campus.name} 캠퍼스</h3>
+          <h3 className={`text-xl font-bold ${getTextStyle()}`}>{campus.name}</h3>
           <p className="mt-1 text-sm text-gray-600">{campus.description}</p>
         </div>
 

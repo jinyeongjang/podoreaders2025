@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { pretendard } from '../lib/fonts';
-import Header from '../components/Header';
-import { useRouter } from 'next/router';
-import { useMaintenanceStatus } from '../hooks/useMaintenanceStatus';
-import MaintenanceScreen from '../components/MaintenanceScreen';
+import Header from '../components/layout/Header';
 import CampusSelectionScreen from '../components/campus/CampusSelectionScreen';
 import CampusAccessLoginForm from '../components/campus/CampusAccessLoginForm';
 import { useCampusLogin } from '../hooks/useCampusLogin';
@@ -12,25 +9,24 @@ import { useCampusLogin } from '../hooks/useCampusLogin';
 const campusList = [
   {
     id: 'prayer',
-    name: '기도',
+    name: '기도 캠퍼스 :: 지원준비중입니다.',
   },
+
   {
-    id: 'word',
-    name: '말씀',
+    id: 'word_uiwan',
+    name: '말씀 캠퍼스 :: 김의완 가족장 ',
   },
+
   {
-    id: 'test',
-    name: '테스트',
-    description: '정식버전 개발기능을 먼저 볼 수 있어요.',
+    id: 'word_minhwa',
+    name: '말씀 캠퍼스 :: 노민화 가족장',
   },
 ];
 
 export default function CampusSelectPage() {
-  const router = useRouter();
   const [selectedCampus, setSelectedCampus] = useState<string | null>(null);
   const [previouslySaved, setPreviouslySaved] = useState<boolean>(false);
   const [showLoginForm, setShowLoginForm] = useState<boolean>(false);
-  const { maintenanceStatus, isMaintenanceMode } = useMaintenanceStatus();
 
   // 캠퍼스 로그인 관련 로직을 커스텀 훅으로 분리
   const { loginAttempts, loginError, isLoading, isLockedOut, remainingLockoutTime, redirectPath, handleCampusLogin } =
@@ -60,27 +56,13 @@ export default function CampusSelectPage() {
     }
   };
 
-  // 뒤로가기 처리
-  const handleBackToSelection = () => {
-    setShowLoginForm(false);
-  };
-
-  // 메인으로 돌아가기
-  const handleBackToHome = () => {
-    router.push('/');
-  };
-
-  // 서버 점검 중이면 점검 화면 표시
-  if (isMaintenanceMode) {
-    return <MaintenanceScreen maintenanceStatus={maintenanceStatus} />;
-  }
-
   // 선택된 캠퍼스 정보 가져오기
   const selectedCampusInfo = campusList.find((c) => c.id === selectedCampus);
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 ${pretendard.className}`}>
-      <Header showBackButton={true} onBackClick={showLoginForm ? handleBackToSelection : handleBackToHome} />
+      {/* onBack prop 대신 showBackButton 속성만 사용 */}
+      <Header showBackButton={true} title="캠퍼스 선택" />
 
       <div className="container mx-auto max-w-2xl px-4 py-8 xs:py-0">
         {showLoginForm && selectedCampusInfo ? (
