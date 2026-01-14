@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Header from '../components/Header';
+import Header from '../components/layout/Header';
 import { pretendard } from '../lib/fonts';
+// FamiilyAccessLoginForm 컴포넌트
 import FamilyAccessLoginForm from '../components/family-management/FamilyAccessLoginForm';
+// supabase
 import { supabase } from '../lib/supabase';
 
 export default function FamilyAccessPage() {
