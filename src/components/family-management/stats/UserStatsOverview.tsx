@@ -21,7 +21,6 @@ const UserStatsOverview = ({ stats }: UserStatsOverviewProps) => {
           <NumberFlow value={stats.qtTotal} />일
         </div>
       </div>
-
       <div className="flex flex-col items-center rounded-lg bg-gray-50 p-2 shadow-sm">
         <div className="flex items-center gap-1">
           <FaBible className="h-3 w-3 text-indigo-500" />
@@ -31,7 +30,6 @@ const UserStatsOverview = ({ stats }: UserStatsOverviewProps) => {
           <NumberFlow value={stats.bibleTotal} />장
         </div>
       </div>
-
       <div className="flex flex-col items-center rounded-lg bg-gray-50 p-2 shadow-sm">
         <div className="flex items-center gap-1">
           <FaPen className="h-3 w-3 text-indigo-500" />
@@ -39,6 +37,13 @@ const UserStatsOverview = ({ stats }: UserStatsOverviewProps) => {
         </div>
         <div className="mt-1 text-xl font-bold text-indigo-500">
           <NumberFlow value={stats.writingTotal} />회
+        </div>
+      </div>
+
+      {/* 날짜 표기 오류 수정 알림 - 10/5 ~ 10/11 까지 날짜 표기 나타나지 않은 오류 수정 */}
+      <div className="col-span-3 w-full">
+        <div className="flex items-center justify-center rounded-xl bg-slate-100 px-1 py-2 text-sm font-medium tracking-tighter text-gray-800">
+          10/5(일) ~ 10/11(토)까지 날짜 표기 오류를 수정했어요.
         </div>
       </div>
     </div>
