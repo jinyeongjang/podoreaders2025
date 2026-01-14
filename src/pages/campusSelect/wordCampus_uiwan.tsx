@@ -8,7 +8,6 @@ import { useWordCampusUiwan } from '../../hooks/useWordCampusUiwan';
 import { useWordCampusUiwanQt } from '../../hooks/useWordCampusUiwanQt';
 
 // components
-import LocationSection from '../../components/campus/LocationSection';
 import FamilyMemberSection from '../../components/family/FamilyMemberSection';
 import WordCampusBannerUiwan from '../../components/wordCampus/WordCampusBannerUiwan';
 import WeeklyDecisionPreview from '../../components/wordCampus/WeeklyDecisionPreview';
@@ -22,6 +21,7 @@ import QtCheckSection from '../../components/wordCampus/QtCheckSection';
 import WelcomeTutorial from '../../components/wordCampus/WelcomeCampusTutorial';
 import SidebarWidget from '../../components/wordCampus/SidebarWidget';
 import SuccessModal from '../../components/dailycheck/SuccessModal';
+// import InstallGuideBanner from '@/components/pwa/InstallGuideBanner';
 
 // 말씀캠퍼스 의완 가족 사용자 데이터
 import campusUsersUiwan from '../../data/campusUsersWord_uiwan.json';
@@ -32,7 +32,6 @@ export default function WordCampusUiwanPage() {
     isAuthorized,
     isLoading,
     notices,
-    locations,
     familyMembers,
     hasFamilyMembers,
     showRandomPicker,
@@ -103,56 +102,42 @@ export default function WordCampusUiwanPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-green-50 to-white ${pretendard.className}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 ${pretendard.className}`}>
       <Header />
 
-      <div className="container mx-auto flex max-w-5xl flex-col px-4 py-2 lg:flex-row lg:gap-6">
-        {/* 메인 컨텐츠 영역 */}
-        <main className="mx-auto w-full lg:w-3/4">
-          {/* 캠퍼스 정보 배너 */}
-          <WordCampusBannerUiwan />
+      {/* 앱 설치 유도 배너 */}
+      {/* <InstallGuideBanner /> */}
 
-          {/* 한주간의 결단 배너 */}
-          <WeeklyDecisionPreview />
+      {/* 캠퍼스 정보 배너 (Hero Section) */}
+      <WordCampusBannerUiwan />
 
-          {/* 기도제목 배너 & 가이드 페이지 배너 - 2열 구조 */}
-          <div className="container mx-auto mb-2 mt-2 grid w-full grid-cols-2 gap-2 xs:grid-cols-1">
-            {/* 기도제목 배너 */}
-            <PrayerPreview />
+      {/* 상단 메뉴 섹션 (전체 너비 배경) */}
+      <div className="w-full border-b border-indigo-50/50 bg-white/50 px-4 py-6 backdrop-blur-sm">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid w-full grid-cols-3 gap-2 md:gap-4">
+            {/* 1. 한주간의 결단 */}
+            <div className="md:col-span-1">
+              <WeeklyDecisionPreview />
+            </div>
 
-            {/* 가이드 페이지 배너 */}
-            <GuidePreview />
+            {/* 2. 기도제목 */}
+            <div className="md:col-span-1">
+              <PrayerPreview />
+            </div>
+
+            {/* 3. 가이드 */}
+            <div className="md:col-span-1">
+              <GuidePreview />
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* 한주간의 결단 페이지 배너 - 메인 페이지에서 안내 배너로 대체*/}
-          {/* <div className="flex-col-2 container mx-auto mb-2 flex w-full">
-            <button
-              onClick={() => router.push('/campusSelect/wordCampus_uiwan_decision')}
-              className="group flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 px-5 py-3 shadow-sm transition-all hover:border-emerald-300 hover:shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-500 shadow-md">
-                  <FaCheck className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-gray-900">한주간의 결단</p>
-                  <p className="text-xs text-gray-600">한주간의 결단한 것을 모아서 볼 수 있어요.</p>
-                </div>
-              </div>
-              <FaChevronRight className="h-5 w-5 text-emerald-600 transition-transform group-hover:translate-x-1" />
-            </button>
-          </div> */}
-
+      <div className="container mx-auto flex max-w-6xl flex-col px-4 py-8 lg:flex-row lg:gap-8">
+        {/* 메인 컨텐츠 영역 */}
+        <main className="mx-auto w-full space-y-8 lg:w-3/4">
           {/* 공지사항 섹션 */}
           <NoticeSection notices={notices} onNoticeClick={handleNoticeClick} formatDate={formatDate} />
-
-          {/* 캠퍼스 상태 섹션-사용 방향성에 대해 고민 */}
-          {/* <div className="container mx-auto mb-4 w-full">
-            <CampusStatusMessageSection
-              statusMessage={statusMessage}
-              onSaveStatus={handleSaveStatusMessage}
-              formatDate={formatDate}
-            />
-          </div> */}
 
           {/* QT 체크 섹션 */}
           <QtCheckSection
@@ -188,9 +173,6 @@ export default function WordCampusUiwanPage() {
             handleRecordsClick={handleRecordsClick}
           />
 
-          {/* 모임장소 섹션 */}
-          <LocationSection locations={locations} handleLocationClick={handleLocationClick} />
-
           {/* 가족원 현황 섹션 */}
           <FamilyMemberSection
             familyMembers={familyMembers}
@@ -211,14 +193,14 @@ export default function WordCampusUiwanPage() {
         </main>
 
         {/* 사이드바 영역 (lg 화면 이상에서만 표시) */}
-        <aside className="sticky top-4 hidden w-full space-y-4 lg:block lg:w-1/3">
+        <aside className="sticky top-24 hidden h-fit w-full space-y-6 lg:block lg:w-1/3">
+          <SidebarWidget />
           <CampusDesigner
             handleNoticeClick={handleNoticeClick}
             handleLocationClick={handleLocationClick}
             handleRegisterClick={handleRegisterClick}
             handleRandomPickerClick={handleRandomPickerClick}
           />
-          <SidebarWidget />
         </aside>
       </div>
 
