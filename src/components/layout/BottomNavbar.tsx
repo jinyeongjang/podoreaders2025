@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { FaHome, FaThermometerHalf } from 'react-icons/fa';
 import { MdOutlineColorLens } from 'react-icons/md';
-import { IoCodeSlashOutline } from 'react-icons/io5';
+import { IoSettingsOutline } from 'react-icons/io5';
 import { GoPeople } from 'react-icons/go';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -61,14 +61,14 @@ export default function BottomNavbar() {
     { label: '말씀온도계', icon: <FaThermometerHalf />, href: '/temperatureCalculator' },
     { label: '테마설정', icon: <MdOutlineColorLens />, onClick: () => setShowThemeModal(true) },
     { label: '캠퍼스설정', icon: <GoPeople />, onClick: () => router.push('/campusSelect') },
-    { label: '개발자정보', icon: <IoCodeSlashOutline />, onClick: () => setShowAppInfo(true) },
+    { label: '앱 설정', icon: <IoSettingsOutline />, href: '/pwa-settings' },
   ];
 
   return (
     <>
       <div className="fixed bottom-0 z-50 w-full">
         <div className="absolute inset-0 border-t border-gray-200 bg-white/80 backdrop-blur-lg"></div>
-        <nav className="relative grid h-16 grid-cols-5">
+        <nav className="pb-safe relative grid h-16 grid-cols-5">
           {navItems.map((item, index) => (
             <NavItem
               key={item.label || index}

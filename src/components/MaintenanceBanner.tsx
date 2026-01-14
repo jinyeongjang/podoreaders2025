@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface MaintenanceBannerProps {
   message: string;
@@ -10,7 +10,7 @@ const MaintenanceBanner: React.FC<MaintenanceBannerProps> = ({ message, startsAt
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
   // 남은 시간 계산 함수
-  const calculateTimeRemaining = () => {
+  const calculateTimeRemaining = useCallback(() => {
     const now = new Date();
     const diff = startsAt.getTime() - now.getTime();
 
@@ -23,7 +23,7 @@ const MaintenanceBanner: React.FC<MaintenanceBannerProps> = ({ message, startsAt
       return `${hours}시간 ${minutes}분 후`;
     }
     return `${minutes}분 후`;
-  };
+  }, [startsAt]);
 
   // 1분마다 남은 시간 업데이트
   useEffect(() => {
@@ -35,7 +35,7 @@ const MaintenanceBanner: React.FC<MaintenanceBannerProps> = ({ message, startsAt
     setTimeRemaining(calculateTimeRemaining());
 
     return () => clearInterval(timer);
-  }, [startsAt]);
+  }, [calculateTimeRemaining]);
 
   return (
     <div className="mb-4 rounded-lg bg-yellow-50 p-4 shadow-sm">

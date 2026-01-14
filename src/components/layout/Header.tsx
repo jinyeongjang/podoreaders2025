@@ -29,7 +29,8 @@ export default function Header({
   const [isFamilyAccessModalOpen, setFamilyAccessModalOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [forceRender, setForceRender] = useState(0); // 강제 렌더링을 위한 상태
+  const [forceRender, setForceRender] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   // 세션 상태 확인 함수 - 여러 곳에서 재사용
   const refreshAuthState = useCallback(async () => {
@@ -108,6 +109,8 @@ export default function Header({
       console.log('Login success flag detected in URL, refreshing auth state');
       refreshAuthState();
     }
+
+    setMounted(true);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
@@ -247,7 +250,7 @@ export default function Header({
       </AnimatePresence>
 
       <header
-        className={`sticky top-0 z-20 border-b border-gray-100/30 bg-white/70 shadow-sm backdrop-blur-lg backdrop-saturate-150 ${pretendard.className}`}>
+        className={`pt-safe sticky top-0 z-20 border-b border-gray-100/30 bg-white/70 shadow-sm backdrop-blur-lg backdrop-saturate-150 ${pretendard.className}`}>
         <div className="container mx-auto w-full max-w-2xl px-0 py-0 xs:px-3 xs:py-0">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -270,7 +273,7 @@ export default function Header({
             </div>
 
             <div className="hidden items-center gap-3 md:flex">
-              {user ? (
+              {mounted && user ? (
                 <div key={forceRender} className="animate-fadeIn flex items-center gap-2">
                   {/* 프로필 이미지 추가 */}
                   {renderProfileImage()}
@@ -342,7 +345,7 @@ export default function Header({
               transition={{ duration: 0.2 }}
               className="w-full border-t border-indigo-100/30 bg-white/90 shadow-md backdrop-blur-md backdrop-saturate-150 md:hidden">
               <div className="container mx-auto space-y-2 px-4 py-3">
-                {user ? (
+                {mounted && user ? (
                   <div
                     key={forceRender}
                     className="animate-fadeIn mb-2 flex items-center justify-between rounded-lg bg-indigo-50/80 p-2 shadow-sm">
@@ -381,18 +384,6 @@ export default function Header({
                   className="flex w-full items-center gap-3 rounded-lg bg-white/80 px-4 py-2.5 text-left shadow-sm transition-colors hover:bg-indigo-50">
                   <FaUniversity className="h-5 w-5 text-indigo-600" />
                   <span className="font-medium text-indigo-700">캠퍼스</span>
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => {
-                    handleChatToggle();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg bg-white/80 px-4 py-2.5 text-left shadow-sm transition-colors hover:bg-indigo-50">
-                  <RiChat3Fill className="h-5 w-5 text-indigo-600" />
-                  <span className="font-medium text-indigo-700">AI 채팅</span>
                 </motion.button>
               </div>
             </motion.div>
