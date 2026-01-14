@@ -2,7 +2,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { FaUserCog, FaDesktop, FaHeart } from 'react-icons/fa';
 import { FaUserPlus } from 'react-icons/fa6';
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -28,6 +28,11 @@ export default function Home() {
 
   // hooks
   const { user } = useAuthStore(); // 사용자 인증 정보 가져오기
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className={pretendard.className}>
@@ -35,7 +40,7 @@ export default function Home() {
 
       {/* 사이드바 - 로그인 시에만 표시 */}
       <AnimatePresence>
-        {user && (
+        {mounted && user && (
           <motion.div
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
