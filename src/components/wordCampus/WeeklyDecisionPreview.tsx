@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { FaCheck, FaChevronRight } from 'react-icons/fa';
+import { useState, useEffect, useCallback } from 'react';
+import { FaCheck } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 
@@ -15,35 +15,23 @@ interface WeeklyDecisionPreview {
 
 const WeeklyDecisionPreview = () => {
   const router = useRouter();
-  const [animatedProgress, setAnimatedProgress] = useState(0);
 
-  // 현재 주의 시작일 및 진행률 계산 (메모이제이션)
-  const { weekProgress, currentDay } = useMemo(() => {
+  // 현재 주의 시작일 및 진행률 계산
+  const [dateInfo, setDateInfo] = useState({ weekProgress: 0, currentDay: '' });
+
+  useEffect(() => {
     const today = new Date();
     const day = today.getDay(); // 0(일) ~ 6(토)
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() - day);
 
     // 주간 진행률 계산 (일요일 0% ~ 토요일 100%)
     const progress = (day / 6) * 100;
-
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
-    return {
+    setDateInfo({
       weekProgress: Math.round(progress),
       currentDay: dayNames[day],
-    };
+    });
   }, []);
-
-  // 프로그레스바 애니메이션 (0%에서 현재 진행률까지)
-  useEffect(() => {
-    // 컴포넌트 마운트 후 약간 지연 후 애니메이션 시작
-    const timer = setTimeout(() => {
-      setAnimatedProgress(weekProgress);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [weekProgress]);
 
   // 클릭 핸들러 메모이제이션
   const handleClick = useCallback(() => {
@@ -51,47 +39,25 @@ const WeeklyDecisionPreview = () => {
   }, [router]);
 
   return (
-    <div className="container mx-auto w-full">
+    <div className="w-full">
       <motion.button
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={handleClick}
-        className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-indigo-200/70 bg-gradient-to-br from-white via-indigo-50/40 to-purple-50/40 px-6 py-4 shadow-md shadow-indigo-100/30 backdrop-blur-sm transition-all hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-200/40 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-        <div className="relative z-10 flex w-full flex-col gap-3.5">
-          {/* 상단: 아이콘 + 텍스트 + 화살표 */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* 아이콘 */}
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-400/40 transition-transform duration-300 group-hover:scale-105">
-                <FaCheck className="h-5 w-5 text-white drop-shadow-sm" />
-              </div>
-
-              {/* 텍스트 */}
-              <div className="items-baseline text-left">
-                <p className="gap-2 text-base font-bold tracking-tight text-gray-900">한주간의 결단</p>
-              </div>
-            </div>
-
-            {/* 화살표 */}
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur-sm transition-all group-hover:bg-white group-hover:shadow-md">
-              <FaChevronRight className="h-4 w-4 text-indigo-600 transition-transform group-hover:translate-x-0.5" />
-            </div>
+        className="group relative flex w-full flex-col items-center justify-center p-2 focus:outline-none">
+        <div className="relative z-10 flex w-full flex-col items-center gap-2">
+          {/* 아이콘 */}
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-200 transition-transform duration-300 group-hover:scale-110">
+            <FaCheck className="h-6 w-6 text-white" />
           </div>
 
-          {/* 하단: 프로그레스 바 (전체 너비) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-600">이번 주 진행률</span>
-              <span className="text-xs font-bold text-indigo-600">
-                {currentDay}요일 • {weekProgress}%
-              </span>
-            </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-gradient-to-r from-gray-200 to-gray-100 shadow-inner">
-              <div
-                className="h-full rounded-full bg-gradient-to-l from-sky-500 via-indigo-500 to-indigo-600 shadow-sm transition-all duration-1000 ease-out"
-                style={{ width: `${animatedProgress}%` }}
-              />
-            </div>
+          {/* 텍스트 */}
+          <div className="text-center">
+            <div className="mb-1 flex items-center justify-center"></div>
+            <h3 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600">한주간의 결단</h3>
+            <span className="ml-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600">
+              {dateInfo.weekProgress}% 진행
+            </span>
           </div>
         </div>
       </motion.button>
